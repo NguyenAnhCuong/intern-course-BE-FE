@@ -30,7 +30,8 @@ import { Breadcrumbs, rgbToHex, useTheme } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LanguageIconComponent from "../icon/languge.icon";
-import { signOut, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
+import AvatarHeader from "../icon/avatar.header";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -101,7 +102,6 @@ const HeaderAdmin = () => {
   const handleMobileMenuClose = () => {
     setMobileMoreAnchorEl(null);
   };
-  console.log(session);
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (
@@ -141,7 +141,11 @@ const HeaderAdmin = () => {
               Setting
             </MenuItem>,
           ]}
-      <MenuItem onClick={handleMenuClose}>
+      <MenuItem
+        onClick={() => {
+          signOut();
+        }}
+      >
         <Logout fontSize="small" sx={{ mr: 1 }} />
         Đăng xuất
       </MenuItem>
@@ -254,7 +258,7 @@ const HeaderAdmin = () => {
                   md: "block",
                   sm: "none",
                   xs: "none",
-                  border: "1px solid red",
+                  // border: "1px solid red",
                 },
               }}
             >
@@ -343,6 +347,9 @@ const HeaderAdmin = () => {
                   {/* Logic: Chưa  đăng nhập */}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <IconButton
+                      onClick={() => {
+                        signIn();
+                      }}
                       size="large"
                       aria-label="show 4 new mails"
                       color="inherit"
@@ -351,15 +358,7 @@ const HeaderAdmin = () => {
                         <Login />
                       </Badge>
                     </IconButton>
-                    <IconButton
-                      size="large"
-                      aria-label="show 17 new notifications"
-                      color="inherit"
-                    >
-                      <Badge badgeContent={17} color="error">
-                        <NotificationsIcon />
-                      </Badge>
-                    </IconButton>
+                    <LanguageIconComponent />
                   </Box>
                 </>
               )}
@@ -367,38 +366,7 @@ const HeaderAdmin = () => {
               {/* Logic: Đã đăng nhập */}
 
               {/* Bên phải: Account */}
-              <Box display={{ xs: "none", md: "block" }}>
-                <IconButton
-                  size="large"
-                  edge="end"
-                  aria-label="account of current user"
-                  aria-controls={menuId}
-                  aria-haspopup="true"
-                  onClick={handleProfileMenuOpen}
-                  color="inherit"
-                >
-                  <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                    <img
-                      src="/assets/avatar25.jpg"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                      }}
-                    />
-                    <Box
-                      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
-                    >
-                      <Box sx={{ fontSize: "15px", textAlign: "start" }}>
-                        User Name
-                      </Box>
-                      <Box sx={{ fontSize: "12px", textAlign: "start" }}>
-                        Role
-                      </Box>
-                    </Box>
-                  </Box>
-                </IconButton>
-              </Box>
+              <AvatarHeader handleProfileMenuOpen={handleProfileMenuOpen} />
             </Box>
 
             {/* Box trống bên phải */}

@@ -14,10 +14,14 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user, account, profile, trigger }) {
       if (trigger === "signIn" && account?.provider === "github") {
+        console.log(">>>user", user);
+        console.log(">>>token", token);
       }
       return token;
     },
     async session({ session, token, user }) {
+      console.log(">>>session", session);
+      console.log(">>>token", token);
       return session;
     },
   },

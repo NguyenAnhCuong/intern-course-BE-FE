@@ -123,7 +123,9 @@ const ProfilePage = () => {
             }}
           />
           <Box>
-            <Box sx={{ fontWeight: "bold", fontSize: "20px" }}>User name</Box>
+            <Box sx={{ fontWeight: "bold", fontSize: "20px" }}>
+              {session?.user?.name}
+            </Box>
             <Box sx={{ fontSize: "15px", opacity: 0.9 }}>Role</Box>
           </Box>
         </Box>
