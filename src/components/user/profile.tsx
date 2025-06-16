@@ -1,12 +1,23 @@
 "use client";
 
-import { Box, Divider, IconButton, Menu, MenuItem } from "@mui/material";
+import { Divider, IconButton, Menu, MenuItem } from "@mui/material";
 import { useEffect, useState } from "react";
-import TextField from "@mui/material/TextField";
+import {
+  Box,
+  Grid,
+  TextField,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Button,
+  Typography,
+} from "@mui/material";
 
 const ProfilePage = () => {
   const [userName, setUserName] = useState("");
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("ADMIN");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isOpenMenu = Boolean(anchorEl);
@@ -20,6 +31,10 @@ const ProfilePage = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const handleUpdateButton = () => {};
+
+  const handleResetButton = () => {};
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (
@@ -108,59 +123,88 @@ const ProfilePage = () => {
         </Box>
       </Box>
 
-      <Box
-        component="form"
-        sx={{
-          "& .MuiTextField-root": { m: 1, width: { xs: "100%", md: "55ch" } },
-        }}
-        noValidate
-        autoComplete="off"
-      >
-        <div>
-          <Box sx={{ p: 1, fontSize: "15px" }}>Account Infomation</Box>
-          <TextField
-            required
-            id="outlined-required"
-            label="User Name"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-          />
-          <TextField
-            disabled
-            id="outlined-disabled"
-            label="Disabled"
-            defaultValue="Hello World"
-          />
-          <TextField
-            id="outlined-password-input"
-            label="Password"
-            type="password"
-            autoComplete="current-password"
-          />
-          <TextField
-            id="outlined-read-only-input"
-            label="Read Only"
-            defaultValue="Hello World"
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-          <TextField
-            id="outlined-number"
-            label="Number"
-            type="number"
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-          <TextField id="outlined-search" label="Search field" type="search" />
-          <TextField
-            id="outlined-helperText"
-            label="Helper text"
-            defaultValue="Default Value"
-            helperText="Some important text"
-          />
-        </div>
+      <Box sx={{ p: 4 }}>
+        <Grid container spacing={4}>
+          {/* Cột trái - Account Information */}
+          <Grid item xs={12} md={6}>
+            <Typography sx={{ mb: 2, fontWeight: "bold" }}>
+              Account Infomation
+            </Typography>
+            <TextField
+              fullWidth
+              label="User Name"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              disabled
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fullWidth
+              label="Email"
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              disabled
+              label="Current Password"
+              type="password"
+              sx={{ mb: 2 }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  handleUpdateButton();
+                }}
+              >
+                Update
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  handleResetButton();
+                }}
+              >
+                Reset
+              </Button>
+            </Box>
+          </Grid>
+
+          {/* Cột phải - Change Password */}
+          <Grid item xs={12} md={6}>
+            <Typography sx={{ mb: 2, fontWeight: "bold" }}>
+              Change Password
+            </Typography>
+            <TextField
+              fullWidth
+              label="New Password"
+              type="password"
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Confirm Password"
+              type="password"
+              sx={{ mb: 2 }}
+            />
+            <RadioGroup
+              row
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <FormControlLabel
+                value="ADMIN"
+                control={<Radio />}
+                label="Admin"
+              />
+              <FormControlLabel value="USER" control={<Radio />} label="User" />
+            </RadioGroup>
+          </Grid>
+        </Grid>
       </Box>
       {renderMenu}
     </Box>
