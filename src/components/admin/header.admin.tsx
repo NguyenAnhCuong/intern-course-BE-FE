@@ -25,7 +25,7 @@ import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { useState } from "react";
-import { Breadcrumbs, rgbToHex } from "@mui/material";
+import { Breadcrumbs, rgbToHex, useTheme } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LanguageIconComponent from "../icon/languge.icon";
@@ -202,7 +202,12 @@ const HeaderAdmin = () => {
   );
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box
+      sx={{
+        flexGrow: 1,
+        zIndex: "10",
+      }}
+    >
       <AppBar position="static" sx={{ bgcolor: "#F4F7F6", color: "black" }}>
         <Toolbar
           sx={{

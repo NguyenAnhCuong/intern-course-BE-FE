@@ -3,7 +3,6 @@
 import { Box, Divider, IconButton, Menu, MenuItem } from "@mui/material";
 import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
-import { url } from "inspector";
 
 const ProfilePage = () => {
   const [userName, setUserName] = useState("");
@@ -112,17 +111,17 @@ const ProfilePage = () => {
       <Box
         component="form"
         sx={{
-          "& .MuiTextField-root": { m: 1, width: "25ch" },
+          "& .MuiTextField-root": { m: 1, width: { xs: "100%", md: "55ch" } },
         }}
         noValidate
         autoComplete="off"
       >
         <div>
+          <Box sx={{ p: 1, fontSize: "15px" }}>Account Infomation</Box>
           <TextField
             required
             id="outlined-required"
-            label="Required"
-            size="medium"
+            label="User Name"
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
           />
