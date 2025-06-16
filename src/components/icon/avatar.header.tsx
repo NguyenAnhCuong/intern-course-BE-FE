@@ -36,7 +36,10 @@ const AvatarHeader = (props: any) => {
                   <Box sx={{ fontSize: "15px", textAlign: "start" }}>
                     {session.user?.name}
                   </Box>
-                  <Box sx={{ fontSize: "12px", textAlign: "start" }}>Role</Box>
+                  <Box sx={{ fontSize: "12px", textAlign: "start" }}>
+                    {" "}
+                    {session?.user.role}
+                  </Box>
                 </Box>
               </Box>
             </IconButton>

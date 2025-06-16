@@ -14,14 +14,22 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user, account, profile, trigger }) {
       if (trigger === "signIn" && account?.provider === "github") {
-        console.log(">>>user", user);
-        console.log(">>>token", token);
+        // Nếu chưa có token.user thì khởi tạo nó
+        token.user = {
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          role: "ADMIN", // Gán role tại đây
+        };
       }
       return token;
     },
+
     async session({ session, token, user }) {
-      console.log(">>>session", session);
-      console.log(">>>token", token);
+      if (token.user) {
+        session.user.role = token.user.role;
+      }
+
       return session;
     },
   },

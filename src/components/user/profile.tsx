@@ -18,13 +18,21 @@ const ProfilePage = () => {
   const { data: session } = useSession();
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("ADMIN");
+  const [currPassword, setCurrPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isOpenMenu = Boolean(anchorEl);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (session?.user) {
+      setUserName(session.user.name ?? "");
+      setEmail(session.user.email ?? "");
+      setRole(session.user.role ?? "ADMIN");
+    }
+  }, [session]);
 
   const handleShowMenuOption = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -35,11 +43,24 @@ const ProfilePage = () => {
   };
 
   const handleUpdateButton = () => {
-    console.log(userName, email, role, password);
+    //validate
+    //call api
   };
 
   const handleResetButton = () => {
+    if (session?.user) {
+      setUserName(session.user.name ?? "");
+      setEmail(session.user.email ?? "");
+      setRole(session.user.role ?? "ADMIN");
+
+      return;
+    }
     setUserName("");
+    setEmail("");
+    setRole("");
+    setCurrPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   const menuId = "primary-search-account-menu";
@@ -126,7 +147,9 @@ const ProfilePage = () => {
             <Box sx={{ fontWeight: "bold", fontSize: "20px" }}>
               {session?.user?.name}
             </Box>
-            <Box sx={{ fontSize: "15px", opacity: 0.9 }}>Role</Box>
+            <Box sx={{ fontSize: "15px", opacity: 0.9 }}>
+              {session?.user.role}
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -159,27 +182,9 @@ const ProfilePage = () => {
               label="Current Password"
               type="password"
               sx={{ mb: 2 }}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={currPassword}
+              onChange={(e) => setCurrPassword(e.target.value)}
             />
-            <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  handleUpdateButton();
-                }}
-              >
-                Update
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  handleResetButton();
-                }}
-              >
-                Reset
-              </Button>
-            </Box>
           </Grid>
 
           {/* Cột phải - Change Password */}
@@ -192,12 +197,16 @@ const ProfilePage = () => {
               label="New Password"
               type="password"
               sx={{ mb: 2 }}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
             />
             <TextField
               fullWidth
               label="Confirm Password"
               type="password"
               sx={{ mb: 2 }}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <RadioGroup
               row
@@ -213,6 +222,24 @@ const ProfilePage = () => {
             </RadioGroup>
           </Grid>
         </Grid>
+        <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              handleUpdateButton();
+            }}
+          >
+            Update
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              handleResetButton();
+            }}
+          >
+            Reset
+          </Button>
+        </Box>
       </Box>
       {renderMenu}
     </Box>

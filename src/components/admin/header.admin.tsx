@@ -75,7 +75,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const HeaderAdmin = () => {
   const { data: session } = useSession();
-  const [role, setRole] = useState("ADMIN");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     useState<null | HTMLElement>(null);
@@ -120,7 +119,7 @@ const HeaderAdmin = () => {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      {role === "ADMIN"
+      {session?.user?.role === "ADMIN"
         ? [
             <MenuItem onClick={handleMenuClose} key="dashboard">
               <Dashboard fontSize="small" sx={{ mr: 1 }} />
@@ -169,7 +168,7 @@ const HeaderAdmin = () => {
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      {role === "ADMIN"
+      {session?.user?.role === "ADMIN"
         ? [
             <MenuItem onClick={handleMenuClose} key="dashboard">
               <Dashboard fontSize="small" sx={{ mr: 1 }} />
@@ -181,35 +180,29 @@ const HeaderAdmin = () => {
             </MenuItem>,
           ]
         : [
-            <MenuItem onClick={handleMenuClose} key="profile">
-              <Person fontSize="small" sx={{ mr: 1 }} />
-              Profile
-            </MenuItem>,
             <MenuItem onClick={handleMenuClose} key="setting">
               <Settings fontSize="small" sx={{ mr: 1 }} />
               Setting
             </MenuItem>,
+            <MenuItem onClick={handleMenuClose} key="profile">
+              <Person fontSize="small" sx={{ mr: 1 }} />
+              Profile
+            </MenuItem>,
           ]}
-      <MenuItem
-        onClick={() => {
-          signOut();
-        }}
-      >
-        <Logout fontSize="small" sx={{ mr: 1 }} />
-        Đăng xuất
-      </MenuItem>
-      {/* <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          size="large"
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem> */}
+      {session ? (
+        <>
+          <MenuItem
+            onClick={() => {
+              signOut();
+            }}
+          >
+            <Logout fontSize="small" sx={{ mr: 1 }} />
+            Đăng xuất
+          </MenuItem>
+        </>
+      ) : (
+        <></>
+      )}
     </Menu>
   );
 
