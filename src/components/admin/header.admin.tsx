@@ -301,14 +301,15 @@ const HeaderAdmin = () => {
               display: "flex",
               alignItems: "center",
               flexGrow: 1,
-              justifyContent: "space-between",
             }}
           >
             {/* Box trống bên trái */}
-            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{ flexGrow: { xs: 1, md: "none" } }} />
 
             {/* Phần icon chia 2 bên */}
-            <Box sx={{ display: "flex", gap: 4 }}>
+            <Box
+              sx={{ display: "flex", gap: 4, justifyContent: "space-between" }}
+            >
               {/* Bên trái: Mail + Language */}
               {/* Logic: Đã đăng nhập */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -384,7 +385,7 @@ const HeaderAdmin = () => {
             </Box>
 
             {/* Box trống bên phải */}
-            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{ flexGrow: { xs: 1, md: "none" } }} />
 
             {/* Menu mobile */}
             <Box sx={{ display: { xs: "flex", md: "none" } }}>
