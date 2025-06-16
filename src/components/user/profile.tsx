@@ -12,8 +12,10 @@ import {
   Button,
   Typography,
 } from "@mui/material";
+import { useSession } from "next-auth/react";
 
 const ProfilePage = () => {
+  const { data: session } = useSession();
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,9 +34,13 @@ const ProfilePage = () => {
     setAnchorEl(null);
   };
 
-  const handleUpdateButton = () => {};
+  const handleUpdateButton = () => {
+    console.log(userName, email, role, password);
+  };
 
-  const handleResetButton = () => {};
+  const handleResetButton = () => {
+    setUserName("");
+  };
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (

@@ -7,6 +7,7 @@ import {
   Person,
   Home,
   LanguageOutlined,
+  Login,
 } from "@mui/icons-material";
 import { styled, alpha } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
@@ -29,6 +30,7 @@ import { Breadcrumbs, rgbToHex, useTheme } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LanguageIconComponent from "../icon/languge.icon";
+import { signOut, useSession } from "next-auth/react";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -71,6 +73,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const HeaderAdmin = () => {
+  const { data: session } = useSession();
   const [role, setRole] = useState("ADMIN");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -98,6 +101,7 @@ const HeaderAdmin = () => {
   const handleMobileMenuClose = () => {
     setMobileMoreAnchorEl(null);
   };
+  console.log(session);
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (
@@ -182,7 +186,11 @@ const HeaderAdmin = () => {
               Setting
             </MenuItem>,
           ]}
-      <MenuItem onClick={handleMenuClose}>
+      <MenuItem
+        onClick={() => {
+          signOut();
+        }}
+      >
         <Logout fontSize="small" sx={{ mr: 1 }} />
         Đăng xuất
       </MenuItem>
@@ -311,43 +319,52 @@ const HeaderAdmin = () => {
               sx={{ display: "flex", gap: 4, justifyContent: "space-between" }}
             >
               {/* Bên trái: Mail + Language */}
-              {/* Logic: Đã đăng nhập */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <IconButton
-                  size="large"
-                  aria-label="show 4 new mails"
-                  color="inherit"
-                >
-                  <Badge>
-                    <MailIcon
-                      sx={{
-                        "&:hover": { cursor: "pointer", color: "#1976d2" },
-                      }}
-                    />
-                  </Badge>
-                </IconButton>
-                <LanguageIconComponent />
+              {session ? (
+                <>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <IconButton
+                      size="large"
+                      aria-label="show 4 new mails"
+                      color="inherit"
+                    >
+                      <Badge>
+                        <MailIcon
+                          sx={{
+                            "&:hover": { cursor: "pointer", color: "#1976d2" },
+                          }}
+                        />
+                      </Badge>
+                    </IconButton>
+                    <LanguageIconComponent />
+                  </Box>
+                </>
+              ) : (
+                <>
+                  {/* Logic: Chưa  đăng nhập */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <IconButton
+                      size="large"
+                      aria-label="show 4 new mails"
+                      color="inherit"
+                    >
+                      <Badge color="error">
+                        <Login />
+                      </Badge>
+                    </IconButton>
+                    <IconButton
+                      size="large"
+                      aria-label="show 17 new notifications"
+                      color="inherit"
+                    >
+                      <Badge badgeContent={17} color="error">
+                        <NotificationsIcon />
+                      </Badge>
+                    </IconButton>
+                  </Box>
+                </>
+              )}
 
-                {/* Logic: Chưa  đăng nhập */}
-                {/* <IconButton
-                  size="large"
-                  aria-label="show 4 new mails"
-                  color="inherit"
-                >
-                  <Badge color="error">
-                    <MailIcon />
-                  </Badge>
-                </IconButton>
-                <IconButton
-                  size="large"
-                  aria-label="show 17 new notifications"
-                  color="inherit"
-                >
-                  <Badge badgeContent={17} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton> */}
-              </Box>
+              {/* Logic: Đã đăng nhập */}
 
               {/* Bên phải: Account */}
               <Box display={{ xs: "none", md: "block" }}>
