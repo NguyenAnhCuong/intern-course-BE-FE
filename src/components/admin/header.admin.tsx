@@ -202,7 +202,12 @@ const HeaderAdmin = () => {
   );
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box
+      sx={{
+        flexGrow: 1,
+        zIndex: "10",
+      }}
+    >
       <AppBar position="static" sx={{ bgcolor: "#F4F7F6", color: "black" }}>
         <Toolbar
           sx={{
