@@ -1,7 +1,8 @@
-import ProfilePage from "@/components/user/profile";
+import AdminProfilePage from "@/components/admin/admin.profile";
+import ProfilePage from "@/components/user/user.profile";
 
 const ManageProfile = () => {
-  return <ProfilePage />;
+  return <AdminProfilePage />;
 };
 
 export default ManageProfile;

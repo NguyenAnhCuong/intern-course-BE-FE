@@ -1,63 +1,20 @@
 "use client";
 
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  IconButton,
-  Collapse,
-  Typography,
-  Divider,
-  Tab,
-  Tooltip,
-} from "@mui/material";
-import {
-  Home,
-  Settings,
-  ExpandLess,
-  ExpandMore,
-  Person,
-  BarChart,
-  Apps,
-  Pages,
-  SettingsInputComponent,
-  SettingsInputComponentOutlined,
-  ShowChart,
-} from "@mui/icons-material";
+import { Drawer, Divider, Tab, Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
 import Tabs from "@mui/material/Tabs";
 import Box from "@mui/material/Box";
 import SettingsIcon from "@mui/icons-material/Settings";
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import path from "path";
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import DevicesIcon from "@mui/icons-material/Devices";
-import PersonIcon from "@mui/icons-material/Person";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { signIn, useSession } from "next-auth/react";
+import SidebarMenu from "../render/sidebar.menu";
 
 const SiderBarAdmin = () => {
+  const { data: session } = useSession();
   const pathname = usePathname();
   const [tabValue, setTabValue] = useState<string>("1");
   const [toggleSideBar, setToggleSideBar] = useState<boolean>(true);
-  const [openManager, setOpenManager] = useState<boolean>(false);
-  const [openPages, setOpenPages] = useState<boolean>(false);
-  const [openCharts, setOpenCharts] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (pathname === "/admin/accounts" || pathname === "/admin/devices") {
-      setOpenManager(true);
-    }
-    if (pathname === "/admin/profile") {
-      setOpenPages(true);
-    }
-    if (pathname === "/admin/charts") {
-      setOpenCharts(true);
-    }
-  }, []);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -150,157 +107,7 @@ const SiderBarAdmin = () => {
         />
       </Tabs>
       <Divider />
-      {tabValue === "1" ? (
-        <>
-          <List>
-            <Link href={"/admin/dashboard"} style={{ textDecoration: "none" }}>
-              <ListItem button>
-                <ListItemIcon>
-                  <Home
-                    sx={{
-                      color:
-                        pathname === "/admin/dashboard" ? "#1100FF" : "inherit",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Dashboard"
-                  style={{
-                    color:
-                      pathname === "/admin/dashboard" ? "#1100FF" : "black",
-                  }}
-                />
-              </ListItem>
-            </Link>
-
-            <ListItem button onClick={() => setOpenManager(!openManager)}>
-              <ListItemIcon>
-                <Apps />
-              </ListItemIcon>
-              <ListItemText primary="Manager" style={{ color: "black" }} />
-              {openManager ? <ExpandMore /> : <KeyboardArrowLeftIcon />}
-            </ListItem>
-
-            <Collapse in={openManager} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <Link
-                  href={"/admin/accounts"}
-                  style={{ textDecoration: "none" }}
-                >
-                  <ListItem button sx={{ pl: 3 }}>
-                    <ListItemIcon>
-                      <ManageAccountsIcon
-                        sx={{
-                          color:
-                            pathname === "/admin/accounts" ? "#1100FF" : "gray",
-                        }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="Manage Accounts"
-                      primaryTypographyProps={{
-                        color:
-                          pathname === "/admin/accounts" ? "#1100FF" : "black",
-                      }}
-                    />
-                  </ListItem>
-                </Link>
-                <Link
-                  href={"/admin/devices"}
-                  style={{ textDecoration: "none" }}
-                >
-                  <ListItem button sx={{ pl: 3 }}>
-                    <ListItemIcon>
-                      <DevicesIcon
-                        sx={{
-                          color:
-                            pathname === "/admin/devices" ? "#1100FF" : "gray",
-                        }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="Manage Devices"
-                      primaryTypographyProps={{
-                        color:
-                          pathname === "/admin/devices" ? "#1100FF" : "black",
-                      }}
-                    />
-                  </ListItem>
-                </Link>
-              </List>
-            </Collapse>
-
-            <ListItem button onClick={() => setOpenPages(!openPages)}>
-              <ListItemIcon>
-                <Pages />
-              </ListItemIcon>
-              <ListItemText primary="Pages" />
-              {openPages ? <ExpandMore /> : <KeyboardArrowLeftIcon />}
-            </ListItem>
-
-            <Collapse in={openPages} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <Link
-                  href={"/admin/profile"}
-                  style={{ textDecoration: "none" }}
-                >
-                  <ListItem button sx={{ pl: 3 }}>
-                    <ListItemIcon>
-                      <PersonIcon
-                        sx={{
-                          color:
-                            pathname === "/admin/profile" ? "#1100FF" : "gray",
-                        }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="Profile"
-                      primaryTypographyProps={{
-                        color:
-                          pathname === "/admin/profile" ? "#1100FF" : "black",
-                      }}
-                    />
-                  </ListItem>
-                </Link>
-              </List>
-            </Collapse>
-
-            <ListItem button onClick={() => setOpenCharts(!openCharts)}>
-              <ListItemIcon>
-                <BarChart />
-              </ListItemIcon>
-              <ListItemText primary="Charts" />
-              {openCharts ? <ExpandMore /> : <KeyboardArrowLeftIcon />}
-            </ListItem>
-
-            <Collapse in={openCharts} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <Link href={"/admin/charts"} style={{ textDecoration: "none" }}>
-                  <ListItem button sx={{ pl: 3 }}>
-                    <ListItemIcon>
-                      <ShowChart
-                        sx={{
-                          color:
-                            pathname === "/admin/charts" ? "#1100FF" : "gray",
-                        }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="Recharts"
-                      primaryTypographyProps={{
-                        color:
-                          pathname === "/admin/charts" ? "#1100FF" : "black",
-                      }}
-                    />
-                  </ListItem>
-                </Link>
-              </List>
-            </Collapse>
-          </List>
-        </>
-      ) : (
-        <>settings</>
-      )}
+      {tabValue === "1" ? <SidebarMenu /> : <>settings</>}
     </Drawer>
   );
 };

@@ -1,3 +1,7 @@
+// app/admin/layout.tsx
+"use client";
+
+import { LayoutProvider } from "@/context/layout.context";
 import HeaderAdmin from "@/components/admin/header.admin";
 import SiderBarAdmin from "@/components/admin/side.bar.admin";
 import ThemeRegistry from "@/components/theme-registry/theme.registry";
@@ -9,24 +13,57 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeRegistry>
-      <Box display="flex">
-        <Box
-          sx={{
-            width: { xs: "none", sm: "none", md: "20vw" },
-            height: "100vh",
-            borderRight: "1px solid #ccc",
-          }}
-        >
-          <SiderBarAdmin />
+    <LayoutProvider layout="admin">
+      <ThemeRegistry>
+        <Box display="flex">
+          {/*left content*/}
+          <Box
+            sx={{
+              width: { xs: "none", sm: "none", md: "20vw" },
+              height: "100vh",
+              borderRight: "1px solid #ccc",
+            }}
+          >
+            <SiderBarAdmin />
+          </Box>
+          {/*right content*/}
+          <Box
+            flex={1}
+            sx={{
+              display: "flex",
+              height: "100vh",
+              width: "80vw",
+              flexDirection: "column",
+              overflow: "hidden", // Ngăn scroll tràn từ container
+            }}
+          >
+            <HeaderAdmin />
+            <Divider />
+            <Box
+              sx={{
+                overflowY: "auto",
+                p: 2,
+                // Optional: Tùy chỉnh scrollbar bằng CSS
+                "&::-webkit-scrollbar": {
+                  width: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "#f0f0f0",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#888",
+                  borderRadius: "4px",
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                  backgroundColor: "#555",
+                },
+              }}
+            >
+              {children}
+            </Box>
+          </Box>
         </Box>
-        <Box flex={2} sx={{ height: "100vh", width: "80vw" }}>
-          {/* Header for the admin layout */}
-          <HeaderAdmin />
-          <Divider />
-          <Box>{children}</Box>
-        </Box>
-      </Box>
-    </ThemeRegistry>
+      </ThemeRegistry>
+    </LayoutProvider>
   );
 }

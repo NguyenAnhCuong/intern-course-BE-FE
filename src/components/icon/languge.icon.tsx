@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, IconButton, Menu, MenuItem } from "@mui/material";
+import { Badge, IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import { useState } from "react";
 import LanguageIcon from "@mui/icons-material/Language";
 
@@ -43,20 +43,22 @@ const LanguageIconComponent = () => {
 
   return (
     <>
-      <IconButton
-        size="large"
-        aria-label="show 17 new notifications"
-        color="inherit"
-        onClick={handleMenuLanguageOpen}
-      >
-        <Badge>
-          <LanguageIcon
-            sx={{
-              "&:hover": { cursor: "pointer", color: "#1976d2" },
-            }}
-          />
-        </Badge>
-      </IconButton>
+      <Tooltip title="Change Language">
+        <IconButton
+          size="large"
+          aria-label="show 17 new notifications"
+          color="inherit"
+          onClick={handleMenuLanguageOpen}
+        >
+          <Badge>
+            <LanguageIcon
+              sx={{
+                "&:hover": { cursor: "pointer", color: "#1976d2" },
+              }}
+            />
+          </Badge>
+        </IconButton>
+      </Tooltip>
       {renderLanguageMenu}
     </>
   );

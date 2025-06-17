@@ -74,7 +74,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const HeaderAdmin = () => {
+const HeaderUser = () => {
   const { data: session } = useSession();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -324,4 +324,4 @@ const HeaderAdmin = () => {
   );
 };
 
-export default HeaderAdmin;
+export default HeaderUser;

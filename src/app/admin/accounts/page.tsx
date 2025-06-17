@@ -1,9 +1,7 @@
+import ManageAccounts from "@/components/admin/manage.accounts";
+
 const AccountPage = () => {
-  return (
-    <div>
-      <h1>Manage Accounts</h1>
-    </div>
-  );
+  return <ManageAccounts />;
 };
 
 export default AccountPage;

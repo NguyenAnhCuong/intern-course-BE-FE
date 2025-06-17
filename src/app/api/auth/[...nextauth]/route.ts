@@ -9,6 +9,9 @@ export const authOptions: AuthOptions = {
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
     }),
+    // Credential({
+
+    // })
     // ...add more providers here
   ],
   callbacks: {
@@ -19,8 +22,12 @@ export const authOptions: AuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
-          role: "ADMIN", // Gán role tại đây
         };
+        if (token.user.email === "cuong1606x@gmail.com") {
+          token.user.role = "ADMIN"; // Gán role tại đây
+        } else {
+          token.user.role = "USER"; // Gán role tại đây
+        }
       }
       return token;
     },
@@ -29,7 +36,6 @@ export const authOptions: AuthOptions = {
       if (token.user) {
         session.user.role = token.user.role;
       }
-
       return session;
     },
   },

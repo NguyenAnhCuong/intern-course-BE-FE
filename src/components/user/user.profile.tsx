@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { useSession } from "next-auth/react";
 
-const ProfilePage = () => {
+const UserProfilePage = () => {
   const { data: session } = useSession();
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
@@ -214,11 +214,17 @@ const ProfilePage = () => {
               onChange={(e) => setRole(e.target.value)}
             >
               <FormControlLabel
+                disabled
                 value="ADMIN"
                 control={<Radio />}
                 label="Admin"
               />
-              <FormControlLabel value="USER" control={<Radio />} label="User" />
+              <FormControlLabel
+                disabled
+                value="USER"
+                control={<Radio />}
+                label="User"
+              />
             </RadioGroup>
           </Grid>
         </Grid>
@@ -245,4 +251,4 @@ const ProfilePage = () => {
     </Box>
   );
 };
-export default ProfilePage;
+export default UserProfilePage;
