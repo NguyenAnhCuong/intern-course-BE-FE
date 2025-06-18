@@ -31,6 +31,7 @@ const UserProfilePage = () => {
       setUserName(session.user.name ?? "");
       setEmail(session.user.email ?? "");
       setRole(session.user.role ?? "ADMIN");
+      setCurrPassword(session.user.password ?? "");
     }
   }, [session]);
 
@@ -52,7 +53,7 @@ const UserProfilePage = () => {
       setUserName(session.user.name ?? "");
       setEmail(session.user.email ?? "");
       setRole(session.user.role ?? "ADMIN");
-
+      setCurrPassword(session.user.password ?? "");
       return;
     }
     setUserName("");

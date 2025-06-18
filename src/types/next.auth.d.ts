@@ -10,6 +10,7 @@ declare module "next-auth/jwt" {
       email?: string | null;
       image?: string | null;
       role?: string; // 👈 biến bạn muốn thêm
+      password?: string | null;
     };
   }
 }
@@ -21,6 +22,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       role?: string; // 👈 biến bạn muốn thêm
+      password?: string | null;
     };
   }
 }

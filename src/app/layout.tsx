@@ -1,7 +1,7 @@
 // app/layout.tsx
 import * as React from "react";
 import ThemeRegistry from "@/components/theme-registry/theme.registry";
-import NextAuthWrapper from "@/app/lib/next.auth.wrapper";
+import NextAuthWrapper from "@/lib/next.auth.wrapper";
 
 export const metadata = {
   title: "Next.js App Router + Material UI v5",

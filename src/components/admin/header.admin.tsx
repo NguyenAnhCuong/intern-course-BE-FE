@@ -103,7 +103,6 @@ const HeaderAdmin = () => {
   return (
     <Box
       sx={{
-        flexGrow: 1,
         zIndex: "10",
       }}
     >
