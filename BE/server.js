@@ -3,11 +3,13 @@ const express = require("express");
 const mqtt = require("mqtt");
 const nodemailer = require("nodemailer");
 const mysql = require("mysql2/promise");
+const cors = require("cors");
 
 const app = express();
+
 const port = 8000;
 const deviceRouter = require("./routes/api.js");
-
+app.use(cors());
 app.use(express.json());
 app.use("/api", deviceRouter); // gắn router
 
