@@ -27,8 +27,13 @@ const HomePage = () => {
         sx={{
           height: "100vh",
           scrollSnapAlign: "start",
-          backgroundColor: "#111",
-          color: "#fff",
+          backgroundImage: "url(/assets/bg_iot2.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          display: "flex",
+          flexDirection: "column",
+          opacity: 0.7,
         }}
       >
         <Section1 />
@@ -39,8 +44,7 @@ const HomePage = () => {
         sx={{
           height: "100vh",
           scrollSnapAlign: "start",
-          backgroundColor: "#222",
-          color: "#fff",
+          color: "white",
         }}
       >
         <Section2 />

@@ -50,7 +50,7 @@ const SiderBarAdmin = () => {
             ml: 2,
           }}
         >
-          <img src="/assets/bird2.png" width={"100%"} />
+          <img src="/assets/MUI_removebg.png" width={"100%"} />
         </Box>
         <Box
           sx={{

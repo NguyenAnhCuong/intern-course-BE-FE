@@ -108,7 +108,6 @@ const HeaderUser = () => {
     <Box
       sx={{
         zIndex: "10",
-        height: "64px",
       }}
     >
       <AppBar position="static" sx={{ bgcolor: "#F4F7F6", color: "black" }}>
