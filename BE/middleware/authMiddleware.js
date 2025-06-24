@@ -10,7 +10,7 @@ function verifyToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // { id, email, role }
-    console.log(`🔑 Xác thực thành công: ${req.user.email} (${req.user.role})`);
+    // console.log(`🔑 Xác thực thành công: ${req.user.email} (${req.user.role})`);
     next();
   } catch (err) {
     return res.status(403).json({ message: "Token không hợp lệ" });

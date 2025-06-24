@@ -33,8 +33,8 @@ router.get("/devices/:id", verifyToken, async (req, res) => {
   const deviceId = req.params.id;
   const { id: userId, role } = req.user;
 
-  console.log("User ID:", userId);
-  console.log("Device ID:", deviceId);
+  // console.log("User ID:", userId);
+  // console.log("Device ID:", deviceId);
 
   try {
     // Nếu là admin thì bỏ qua kiểm tra
@@ -44,7 +44,7 @@ router.get("/devices/:id", verifyToken, async (req, res) => {
         [userId, deviceId]
       );
 
-      console.log("Permissions:", permissions);
+      // console.log("Permissions:", permissions);
 
       if (permissions.length === 0) {
         return res
