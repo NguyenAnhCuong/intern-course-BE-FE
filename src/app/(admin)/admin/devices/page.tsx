@@ -1,9 +1,7 @@
+import ManageDevices from "@/components/admin/manage.devices";
+
 const DevicePage = () => {
-  return (
-    <div>
-      <h1>Manage Devices</h1>
-    </div>
-  );
+  return <ManageDevices />;
 };
 
 export default DevicePage;

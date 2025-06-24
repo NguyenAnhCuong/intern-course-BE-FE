@@ -1,3 +1,5 @@
+"user client";
+
 import { Box, IconButton } from "@mui/material";
 import { signIn, useSession } from "next-auth/react";
 

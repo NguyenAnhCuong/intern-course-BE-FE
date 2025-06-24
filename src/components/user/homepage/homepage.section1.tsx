@@ -35,7 +35,11 @@ const Section1 = () => {
           {/* Menu */}
           <Box sx={{ display: "flex", gap: 4 }}>
             <Link
-              style={{ textDecoration: "none", color: "black" }}
+              style={{
+                textDecoration: "none",
+                color: "white",
+                fontWeight: "bold",
+              }}
               href={"/user/charts"}
               passHref
             >
@@ -48,12 +52,14 @@ const Section1 = () => {
             </Link>
             <Typography
               variant="body1"
+              color="white"
               sx={{ "&:hover": { cursor: "pointer", color: "red" } }}
             >
               Features
             </Typography>
             <Typography
               variant="body1"
+              color="white"
               sx={{ "&:hover": { cursor: "pointer", color: "red" } }}
             >
               Support

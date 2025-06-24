@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -17,28 +17,31 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import { Delete, Edit } from "@mui/icons-material";
 
-function createData(id: number, email: string, name: string, role: string) {
-  return { id, email, name, role };
-}
-
-const rows: IAccounts[] = [
-  createData(1, "user1@example.com", "User One", "ADMIN"),
-  createData(2, "user2@example.com", "User Two", "USER"),
-  createData(3, "user3@example.com", "User Three", "USER"),
-  createData(4, "user4@example.com", "User One", "ADMIN"),
-  createData(5, "user5@example.com", "User Two", "USER"),
-  createData(6, "user6@example.com", "User Three", "USER"),
-  createData(7, "user7@example.com", "User One", "ADMIN"),
-  createData(8, "user8@example.com", "User Two", "USER"),
-  createData(9, "user9@example.com", "User Three", "ADMIN"),
-  createData(10, "user10@example.com", "User One", "ADMIN"),
-  createData(11, "user11@example.com", "User Two", "USER"),
-  createData(12, "user12@example.com", "User Three", "ADMIN"),
-];
-
 const ManageAccounts = () => {
+  const [rows, setRows] = useState<IAccounts[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  useEffect(() => {}, []);
+
+  const fetchAccounts = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/users`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    const data = await response.json();
+    console.log(data);
+
+    setRows(data);
+  };
+
+  useEffect(() => {
+    fetchAccounts(); // Fetch accounts when component mounts
+  }, []);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);

@@ -22,4 +22,11 @@ declare global {
     statusCode: number | string;
     data?: T;
   }
+  interface IotData {
+    id: number;
+    device_id: string;
+    temperature: number | null;
+    gas: number | null;
+    timestamp: string;
+  }
 }

@@ -1,5 +1,6 @@
 "use client";
 import {
+  AppRegistrationRounded,
   ArrowBack,
   GitHub,
   Google,
@@ -25,7 +26,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const AuthSignIn = (props: any) => {
+const AuthSignUp = (props: any) => {
   const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
   const [resMessage, setResMessage] = useState<string>("");
@@ -33,18 +34,31 @@ const AuthSignIn = (props: any) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const [isErrorUsername, setIsErrorUsername] = useState<boolean>(false);
+  const [isErrorEmail, setIsErrorEmail] = useState<boolean>(false);
   const [isErrorPassword, setIsErrorPassword] = useState<boolean>(false);
 
   const [errorUsername, setErrorUsername] = useState<string>("");
+  const [errorEmail, setErrorEmail] = useState<string>("");
   const [errorPassword, setErrorPassword] = useState<string>("");
+
+  const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
 
   const handleSubmit = async () => {
     setIsErrorUsername(false);
+    setIsErrorEmail(false);
     setIsErrorPassword(false);
     setErrorUsername("");
+    setErrorEmail("");
     setErrorPassword("");
 
     if (!username) {
@@ -52,23 +66,50 @@ const AuthSignIn = (props: any) => {
       setErrorUsername("Username is not empty");
       return;
     }
+    if (!email) {
+      setIsErrorEmail(true);
+      setErrorEmail("Email is not empty");
+      return;
+    }
     if (!password) {
       setIsErrorPassword(true);
-      setErrorPassword("Passwprd is not empty");
+      setErrorPassword("Password is not empty");
+      return;
+    }
+    if (username.length < 3) {
+      setIsErrorUsername(true);
+      setErrorUsername("Username must be at least 3 characters");
       return;
     }
 
-    const res = await signIn("credentials", {
-      username,
-      password,
-      redirect: false,
+    if (!validateEmail(email)) {
+      setIsErrorEmail(true);
+      setErrorEmail("Email is not valid");
+      return;
+    }
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: username,
+        email: email,
+        password: password,
+      }),
     });
 
-    if (!res?.error) {
-      router.push("/");
+    const data = await res.json();
+
+    if (res.ok) {
+      setOpen(true);
+      setResMessage("Registration successful!");
+      router.push("/auth/signin");
     } else {
       setOpen(true);
-      setResMessage("Invalid Username/password!");
+      setResMessage("Something went wrong!");
+      return;
     }
   };
 
@@ -106,9 +147,9 @@ const AuthSignIn = (props: any) => {
               }}
             >
               <Avatar>
-                <LockOutlined />
+                <AppRegistrationRounded />
               </Avatar>
-              <Typography component={"h1"}>Sign in</Typography>
+              <Typography component={"h1"}>Sign Up</Typography>
             </Box>
             <TextField
               onChange={(e) => setUsername(e.target.value)}
@@ -121,6 +162,18 @@ const AuthSignIn = (props: any) => {
               autoFocus
               error={isErrorUsername}
               helperText={errorUsername}
+            />
+            <TextField
+              onChange={(e) => setEmail(e.target.value)}
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              label="Email"
+              name="email"
+              autoFocus
+              error={isErrorEmail}
+              helperText={errorEmail}
             />
             <TextField
               onChange={(e) => setPassword(e.target.value)}
@@ -161,32 +214,8 @@ const AuthSignIn = (props: any) => {
               variant="contained"
               color="primary"
             >
-              Sign In
+              Sign Up
             </Button>
-            <Divider>Or using</Divider>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "25px",
-                mt: 3,
-              }}
-            >
-              <Avatar
-                onClick={() => {
-                  signIn("github");
-                }}
-                sx={{ cursor: "pointer", bgcolor: "orange" }}
-              >
-                <GitHub titleAccess="Login with Github" />
-              </Avatar>
-              <Avatar sx={{ cursor: "pointer", bgcolor: "orange" }}>
-                <Google titleAccess="Login with Github" />
-              </Avatar>
-            </Box>
-            <Divider sx={{ my: 3 }}>
-              Don't have account? <Link href="/auth/signup">Sign Up</Link>
-            </Divider>
           </div>
         </Grid>
       </Grid>
@@ -207,4 +236,4 @@ const AuthSignIn = (props: any) => {
   );
 };
 
-export default AuthSignIn;
+export default AuthSignUp;

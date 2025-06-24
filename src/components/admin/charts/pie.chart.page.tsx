@@ -19,46 +19,7 @@ const COLORS = [
   "#17A2B8",
 ];
 
-const groupByDevice = (data: any[]) => {
-  const counts: Record<string, number> = {};
-
-  data.forEach((item) => {
-    const key = item.device_id;
-    counts[key] = (counts[key] || 0) + 1;
-  });
-
-  return Object.entries(counts).map(([name, value]) => ({ name, value }));
-};
-
-const PieChartComponent = () => {
-  const [data, setData] = useState<{ name: string; value: number }[]>([]);
-
-  const fetchData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/iot/data`
-      );
-      const res = await response.json();
-
-      if (res) {
-        const pieData = groupByDevice(res);
-        setData(pieData);
-      }
-    } catch (err) {
-      console.error("❌ Fetch error:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchData(); // gọi lần đầu
-
-    const interval = setInterval(() => {
-      fetchData();
-    }, 5000); // mỗi 5 giây gọi lại
-
-    return () => clearInterval(interval);
-  }, []);
-
+const PieChartComponent = (props: any) => {
   return (
     <ResponsiveContainer
       width="100%"
@@ -67,7 +28,7 @@ const PieChartComponent = () => {
     >
       <PieChart>
         <Pie
-          data={data}
+          data={props.data}
           dataKey="value"
           nameKey="name"
           cx="50%"
@@ -75,8 +36,11 @@ const PieChartComponent = () => {
           outerRadius={100}
           label
         >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          {props.data.map((entry: any, index: number) => (
+            <Cell
+              key={`cell-${index + 1}`}
+              fill={COLORS[index % COLORS.length]}
+            />
           ))}
         </Pie>
         <Tooltip />
