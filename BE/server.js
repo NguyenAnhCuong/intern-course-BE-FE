@@ -4,8 +4,11 @@ const mqtt = require("mqtt");
 const nodemailer = require("nodemailer");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
+const accessRoutes = require('./routes/access');
+const sensorRoutes = require('./routes/sensor');
 
 const app = express();
+require('dotenv').config();
 
 const port = 8000;
 const deviceRouter = require("./routes/api.js");
@@ -121,3 +124,16 @@ app.get("/status", (req, res) => {
 app.listen(port, () => {
   console.log(`🚀 Server listening at http://localhost:${port}`);
 });
+
+
+
+const authRoutes = require('./routes/auth');
+const { verifyToken, requireAdmin } = require('./middlewares/authMiddleware');
+
+app.use(express.json());
+
+// Đăng ký / đăng nhập
+app.use('/api', authRoutes);
+
+app.use('/api/access', accessRoutes);       // quản lý phân quyền
+app.use('/api/sensor', sensorRoutes);    // quản lý dữ liệu cảm biến
