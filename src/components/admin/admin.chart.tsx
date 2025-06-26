@@ -45,11 +45,11 @@ function CustomTabPanel(props: TabPanelProps) {
 const ChartAdmin = () => {
   const { data: session } = useSession();
 
-  const [openLineChartModal, setOpenLineChartModal] = useState(false);
+  const [openLineChartModal, setOpenLineChartModal] = useState<boolean>(false);
   const handleOpenLineChart = () => setOpenLineChartModal(true);
   const handleCloseLineChart = () => setOpenLineChartModal(false);
 
-  const [openPieChartModal, setOpenPieChartModal] = useState(false);
+  const [openPieChartModal, setOpenPieChartModal] = useState<boolean>(false);
   const handleOpenPieChart = () => setOpenPieChartModal(true);
   const handleClosePieChart = () => setOpenPieChartModal(false);
 
@@ -57,7 +57,6 @@ const ChartAdmin = () => {
   const [dataPieChart, setDataPieChart] = useState<
     { name: string; value: number }[]
   >([]);
-  const [deviceIds, setDeviceIds] = useState<string[]>([]);
   const [value, setValue] = useState(0);
   const [dataTab, setDataTab] = useState<any[]>([]);
 
@@ -122,7 +121,6 @@ const ChartAdmin = () => {
     const rawData: IotData[] = await response.json();
     const formatted = groupDataByTime(rawData);
     setDataLineChart(formatted.data);
-    setDeviceIds(formatted.deviceIds);
 
     const pieData = groupByDevice(rawData);
     setDataPieChart(pieData);
@@ -160,15 +158,22 @@ const ChartAdmin = () => {
         }
       }
       setDataTab(allowedDevices);
+      await fetchData();
     } catch (err) {
       console.error("Lỗi khi fetchDataTab:", err);
     }
   };
 
   useEffect(() => {
+    if (!session) return;
     fetchDataTab();
-    fetchData();
-  }, []);
+
+    const interval = setInterval(() => {
+      fetchDataTab();
+    }, 10000);
+
+    return () => clearInterval(interval); // cleanup khi component unmount
+  }, [session]);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>

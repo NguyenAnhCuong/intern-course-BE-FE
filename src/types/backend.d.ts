@@ -23,10 +23,23 @@ declare global {
     data?: T;
   }
   interface IotData {
-    id: number;
+    id: string;
     device_id: string;
     temperature: number | null;
     gas: number | null;
     timestamp: string;
+  }
+
+  interface IPermit {
+    id: string;
+    user_id: string;
+    devices_id: string;
+    can_view: boolean;
+  }
+
+  interface IDevices {
+    id: string;
+    name: string;
+    status: string;
   }
 }

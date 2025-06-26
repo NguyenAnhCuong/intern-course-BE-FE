@@ -43,12 +43,17 @@ const SidebarMenu = () => {
   };
 
   useEffect(() => {
-    if (pathname === ROUTES.ACCOUNTS || pathname === ROUTES.DEVICES) {
+    if (
+      pathname.startsWith(ROUTES.ACCOUNTS) ||
+      pathname.startsWith(ROUTES.DEVICES)
+    ) {
       setOpenSections((prev) => ({ ...prev, manager: true }));
     }
+
     if (pathname === ROUTES.PROFILE_ADMIN || pathname === ROUTES.PROFILE_USER) {
       setOpenSections((prev) => ({ ...prev, pages: true }));
     }
+
     if (pathname === ROUTES.CHARTS) {
       setOpenSections((prev) => ({ ...prev, charts: true }));
     }
@@ -89,14 +94,18 @@ const SidebarMenu = () => {
               <ListItemIcon>
                 <ManageAccountsIcon
                   sx={{
-                    color: pathname === ROUTES.ACCOUNTS ? "#1100FF" : "gray",
+                    color: pathname.startsWith(ROUTES.ACCOUNTS)
+                      ? "#1100FF"
+                      : "gray",
                   }}
                 />
               </ListItemIcon>
               <ListItemText
                 primary="Manage Accounts"
                 primaryTypographyProps={{
-                  color: pathname === ROUTES.ACCOUNTS ? "#1100FF" : "black",
+                  color: pathname.startsWith(ROUTES.ACCOUNTS)
+                    ? "#1100FF"
+                    : "black",
                 }}
               />
             </ListItem>
@@ -107,14 +116,18 @@ const SidebarMenu = () => {
               <ListItemIcon>
                 <DevicesIcon
                   sx={{
-                    color: pathname === ROUTES.DEVICES ? "#1100FF" : "gray",
+                    color: pathname.startsWith(ROUTES.DEVICES)
+                      ? "#1100FF"
+                      : "gray",
                   }}
                 />
               </ListItemIcon>
               <ListItemText
                 primary="Manage Devices"
                 primaryTypographyProps={{
-                  color: pathname === ROUTES.DEVICES ? "#1100FF" : "black",
+                  color: pathname.startsWith(ROUTES.DEVICES)
+                    ? "#1100FF"
+                    : "black",
                 }}
               />
             </ListItem>

@@ -30,6 +30,7 @@ const AuthSignUp = (props: any) => {
   const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
   const [resMessage, setResMessage] = useState<string>("");
+  const [errMessage, setErrMessage] = useState<string>("");
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -103,14 +104,12 @@ const AuthSignUp = (props: any) => {
     const data = await res.json();
 
     if (res.ok) {
-      setOpen(true);
       setResMessage("Registration successful!");
       router.push("/auth/signin");
     } else {
-      setOpen(true);
-      setResMessage("Something went wrong!");
-      return;
+      setErrMessage(data.message || "Something went wrong!");
     }
+    setOpen(true);
   };
 
   return (
@@ -223,13 +222,14 @@ const AuthSignUp = (props: any) => {
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
         open={open}
         autoHideDuration={4000}
+        onClose={() => setOpen(false)}
       >
         <Alert
           onClose={() => setOpen(false)}
-          severity="error"
+          severity={resMessage ? "success" : "error"}
           sx={{ width: "100%" }}
         >
-          {resMessage}
+          {resMessage || errMessage}
         </Alert>
       </Snackbar>
     </Box>
