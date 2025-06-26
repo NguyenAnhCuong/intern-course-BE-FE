@@ -6,7 +6,7 @@ const { verifyToken, requireAdmin } = require("../middleware/authMiddleware");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
-const { log } = require("console");
+const { log, error } = require("console");
 
 // Cấu hình Nodemailer
 const transporter = nodemailer.createTransport({
@@ -69,14 +69,31 @@ router.get("/devices/:id", verifyToken, async (req, res) => {
 // POST /devices: Thêm thiết bị mới
 router.post("/devices", async (req, res) => {
   const { id, name, status } = req.body;
+
   if (!id || !name) {
     return res.status(400).json({ error: "ID and name are required" });
   }
+  if (id === "device_temp_" || id === "device_gas_") {
+    return res.status(500).json({ error: "Invalid ID" });
+  }
+
   try {
+    // Kiểm tra xem ID đã tồn tại chưa
+    const [existingDevice] = await pool.query(
+      "SELECT * FROM devices WHERE id = ?",
+      [id]
+    );
+
+    if (existingDevice.length > 0) {
+      return res.status(409).json({ error: "Device ID already exists" }); // HTTP 409 Conflict
+    }
+
+    // Nếu chưa tồn tại thì thêm mới
     await pool.query(
       "INSERT INTO devices (id, name, status) VALUES (?, ?, ?)",
       [id, name, status || "active"]
     );
+
     res.status(201).json({ message: "Device created" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -288,7 +305,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/grant", verifyToken, requireAdmin, async (req, res) => {
+router.post("/access", verifyToken, requireAdmin, async (req, res) => {
   const { user_id, device_id } = req.body;
 
   if (!user_id || !device_id)
@@ -296,7 +313,7 @@ router.post("/grant", verifyToken, requireAdmin, async (req, res) => {
 
   try {
     await pool.query(
-      "INSERT IGNORE INTO user_device_access (user_id, device_id) VALUES (?, ?)",
+      "INSERT IGNORE INTO user_device_permissions (user_id, device_id) VALUES (?, ?)",
       [user_id, device_id]
     );
     res.json({ message: "Cấp quyền thành công" });
