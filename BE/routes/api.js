@@ -137,6 +137,7 @@ router.get("/iot/data", async (req, res) => {
   const { deviceId, startTime, endTime } = req.query;
   let query = "SELECT * FROM iot_temp_data";
   let params = [];
+
   if (deviceId || startTime || endTime) {
     query += " WHERE";
     if (deviceId) {
@@ -154,6 +155,10 @@ router.get("/iot/data", async (req, res) => {
       params.push(endTime);
     }
   }
+
+  // ⚠ Thêm ORDER BY trước LIMIT
+  query += " ORDER BY timestamp DESC LIMIT 500";
+
   try {
     const [rows] = await pool.query(query, params);
     res.json(rows);
@@ -227,28 +232,97 @@ router.post("/users", async (req, res) => {
   }
 });
 
+router.put("/users/profile", verifyToken, async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized." });
+  }
+
+  // Lấy và xử lý dữ liệu từ body
+  const name = req.body.name?.trim(); // chỉ trim đầu cuối
+  const role = req.body.role;
+
+  // Kiểm tra name
+  if (!name || name.length < 3 || name.length > 50) {
+    return res.status(400).json({
+      error: "Name must be 3-50 characters long.",
+    });
+  }
+
+  // Regex: cho phép chữ cái (có dấu), số, dấu cách và _
+  const nameRegex = /^[\p{L}0-9_ ]+$/u;
+  if (!nameRegex.test(name)) {
+    return res.status(400).json({
+      error: "Name contains invalid characters.",
+    });
+  }
+
+  // Kiểm tra role
+  const validRoles = ["ADMIN", "USER"];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({
+      error: "Invalid role value.",
+    });
+  }
+
+  // Cập nhật database
+  try {
+    await pool.query("UPDATE users SET name = ?, role = ? WHERE id = ?", [
+      name,
+      role,
+      userId,
+    ]);
+    return res.status(200).json({ message: "User updated successfully." });
+  } catch (error) {
+    console.error("Update user error:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+});
+
 // POST /api/register
 router.post("/register", async (req, res) => {
   const { email, password, name } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ message: "Thiếu email hoặc mật khẩu" });
+
+  // Kiểm tra các trường bắt buộc
+  if (!email || !password || !name?.trim()) {
+    return res.status(400).json({ message: "Thiếu email, mật khẩu hoặc tên" });
+  }
+
+  const trimmedName = name.trim();
+
+  // Kiểm tra name hợp lệ
+  if (trimmedName.length < 3 || trimmedName.length > 50) {
+    return res
+      .status(400)
+      .json({ message: "Tên phải có độ dài từ 3 đến 50 ký tự" });
+  }
+
+  const nameRegex = /^[\p{L}0-9_ ]+$/u; // Cho phép chữ cái (có dấu), số, dấu cách, gạch dưới
+  if (!nameRegex.test(trimmedName)) {
+    return res.status(400).json({ message: "Tên chứa ký tự không hợp lệ" });
+  }
 
   try {
+    // Kiểm tra email đã tồn tại chưa
     const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
-    if (users.length > 0)
+    if (users.length > 0) {
       return res.status(400).json({ message: "Email đã tồn tại" });
+    }
 
+    // Hash password và lưu user
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO users (id, email, password, name, role) VALUES (?, ?, ?, ?, ?)",
-      [uuidv4(), email, hashedPassword, name, "USER"]
+      [uuidv4(), email, hashedPassword, trimmedName, "USER"]
     );
 
-    res.status(201).json({ message: "Đăng ký thành công" });
+    return res.status(201).json({ message: "Đăng ký thành công" });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi máy chu", err: err.message });
+    console.error("Lỗi khi đăng ký:", err);
+    return res.status(500).json({ message: "Lỗi máy chủ", err: err.message });
   }
 });
 
@@ -256,15 +330,11 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { name, password } = req.body;
 
-  console.log(name, password);
-
   try {
     // Truy vấn người dùng theo name
     const [users] = await pool.query("SELECT * FROM users WHERE name = ?", [
       name,
     ]);
-
-    console.log("Users found:", users);
 
     if (users.length === 0) {
       return res.status(400).json({ message: "Sai tên người dùng" });
@@ -320,6 +390,50 @@ router.post("/access", verifyToken, requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Lỗi máy chủ", err: err.message });
+  }
+});
+
+router.post("/user/change-password", verifyToken, async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.user.id; // lấy từ verifyToken (jwt)
+
+  console.log(oldPassword, newPassword);
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ message: "Thiếu mật khẩu cũ hoặc mới" });
+  }
+
+  try {
+    // 1. Lấy thông tin user hiện tại từ DB
+    const [rows] = await pool.query("SELECT password FROM users WHERE id = ?", [
+      userId,
+    ]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
+
+    const hashedPassword = rows[0].password;
+
+    // 2. So sánh mật khẩu cũ
+    const isMatch = await bcrypt.compare(oldPassword, hashedPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Mật khẩu cũ không đúng" });
+    }
+
+    // 3. Hash mật khẩu mới
+    const salt = await bcrypt.genSalt(10);
+    const newHashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // 4. Cập nhật mật khẩu
+    await pool.query("UPDATE users SET password = ? WHERE id = ?", [
+      newHashedPassword,
+      userId,
+    ]);
+
+    res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (err) {
+    console.error("Lỗi khi đổi mật khẩu:", err);
+    res.status(500).json({ message: "Lỗi máy chủ", error: err.message });
   }
 });
 
