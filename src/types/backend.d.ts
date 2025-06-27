@@ -7,6 +7,10 @@ declare global {
     name: string;
     role: string;
   }
+  interface IChangePass {
+    currPassword: string;
+    newPassword: string;
+  }
   interface IRequest {
     url: string;
     method: string;

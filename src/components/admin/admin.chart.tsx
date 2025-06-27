@@ -119,7 +119,8 @@ const ChartAdmin = () => {
       }
     );
     const rawData: IotData[] = await response.json();
-    const formatted = groupDataByTime(rawData);
+    const formatted = groupDataByTime(rawData.reverse());
+
     setDataLineChart(formatted.data);
 
     const pieData = groupByDevice(rawData);
@@ -166,13 +167,19 @@ const ChartAdmin = () => {
 
   useEffect(() => {
     if (!session) return;
-    fetchDataTab();
+    fetchDataTab(); // Chỉ gọi 1 lần khi session sẵn sàng
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    fetchData(); // Gọi lần đầu
 
     const interval = setInterval(() => {
-      fetchDataTab();
+      fetchData(); // Gọi mỗi 10s
     }, 10000);
 
-    return () => clearInterval(interval); // cleanup khi component unmount
+    return () => clearInterval(interval); // cleanup
   }, [session]);
 
   return (

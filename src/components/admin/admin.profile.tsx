@@ -1,7 +1,16 @@
 "use client";
 
-import { Divider, IconButton, Menu, MenuItem } from "@mui/material";
-import { useEffect, useState } from "react";
+import {
+  Alert,
+  AlertColor,
+  Divider,
+  IconButton,
+  InputAdornment,
+  Menu,
+  MenuItem,
+  Snackbar,
+} from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -13,16 +22,28 @@ import {
   Typography,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const AdminProfilePage = () => {
-  const { data: session } = useSession();
-  const [userName, setUserName] = useState("");
-  const [email, setEmail] = useState("");
-  const [currPassword, setCurrPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("");
+  const { data: session, update } = useSession();
+
+  const [open, setOpen] = useState<boolean>(false);
+  const [resMessage, setResMessage] = useState<string>("");
+  const [colorMessage, setColorMessage] = useState<AlertColor>("success");
+
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  const [userName, setUserName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [currPassword, setCurrPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [role, setRole] = useState<"ADMIN" | "USER">("ADMIN");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isErrConfirmInput, setIsErrConfirmInput] = useState<boolean>(false);
+  const [errTextConfirmInput, setErrTextConfirmInput] = useState<string | null>(
+    null
+  );
 
   const isOpenMenu = Boolean(anchorEl);
 
@@ -31,7 +52,7 @@ const AdminProfilePage = () => {
       setUserName(session.user.name ?? "");
       setEmail(session.user.email ?? "");
       setRole(session.user.role ?? "ADMIN");
-      setCurrPassword(session.user.password ?? "");
+      setCurrPassword("");
     }
   }, [session]);
 
@@ -43,9 +64,77 @@ const AdminProfilePage = () => {
     setAnchorEl(null);
   };
 
-  const handleUpdateButton = () => {
-    //validate
-    //call api
+  const handleUpdateButton = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/profile`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          name: userName,
+          role,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      // ✅ Refresh lại session sau khi update thành công
+      await update({
+        user: {
+          name: userName,
+          role: role,
+          // có thể thêm avatar, v.v.
+        },
+      });
+
+      setOpen(true);
+      setColorMessage("success");
+      setResMessage("Profile updated successfully");
+    } else {
+      setOpen(true);
+      setColorMessage("error");
+      setResMessage(`Something went wrong!`);
+    }
+  };
+
+  const handleChangePassword = async (): Promise<void> => {
+    setColorMessage("success");
+    setIsErrConfirmInput(false);
+    if (newPassword !== confirmPassword) {
+      setIsErrConfirmInput(true);
+      setErrTextConfirmInput("Passwords do not match");
+      return;
+    }
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/change-password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          oldPassword: currPassword,
+          newPassword,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      setOpen(true);
+      setColorMessage("success");
+      setResMessage("Change Password success");
+    } else {
+      setOpen(true);
+      setColorMessage("error");
+      setResMessage("Something went wrong!");
+    }
+
+    handleResetButton();
   };
 
   const handleResetButton = () => {
@@ -53,12 +142,14 @@ const AdminProfilePage = () => {
       setUserName(session.user.name ?? "");
       setEmail(session.user.email ?? "");
       setRole(session.user.role ?? "ADMIN");
-      setCurrPassword(session.user.password ?? "");
+      setCurrPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
       return;
     }
     setUserName("");
     setEmail("");
-    setRole("");
+    setRole("ADMIN");
     setCurrPassword("");
     setNewPassword("");
     setConfirmPassword("");
@@ -177,15 +268,50 @@ const AdminProfilePage = () => {
               label="Email"
               sx={{ mb: 2 }}
             />
-            <TextField
-              fullWidth
-              disabled
-              label="Current Password"
-              type="password"
-              sx={{ mb: 2 }}
-              value={currPassword}
-              onChange={(e) => setCurrPassword(e.target.value)}
-            />
+            <Box
+              sx={{
+                width: "100%",
+                height: "56px",
+                display: "flex",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <RadioGroup
+                row
+                value={role}
+                onChange={(e) => setRole(e.target.value as "ADMIN" | "USER")}
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <FormControlLabel
+                  value="ADMIN"
+                  control={<Radio />}
+                  label="Admin"
+                />
+                <FormControlLabel
+                  value="USER"
+                  control={<Radio />}
+                  label="User"
+                />
+              </RadioGroup>
+            </Box>
+
+            <Button variant="outlined" onClick={handleUpdateButton}>
+              Upadate
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleResetButton}
+              sx={{ mx: 2 }}
+            >
+              Reset
+            </Button>
           </Grid>
 
           {/* Cột phải - Change Password */}
@@ -195,53 +321,65 @@ const AdminProfilePage = () => {
             </Typography>
             <TextField
               fullWidth
-              label="New Password"
+              label="Current Password"
               type="password"
+              sx={{ mb: 2 }}
+              value={currPassword}
+              onChange={(e) => setCurrPassword(e.target.value)}
+            />
+            <TextField
+              fullWidth
+              label="New Password"
+              type={showPassword ? "text" : "password"}
               sx={{ mb: 2 }}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword === false ? (
+                        <VisibilityOff />
+                      ) : (
+                        <Visibility />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               fullWidth
               label="Confirm Password"
               type="password"
+              error={isErrConfirmInput}
+              helperText={errTextConfirmInput}
               sx={{ mb: 2 }}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            <RadioGroup
-              row
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
+            <Button
+              variant="outlined"
+              onClick={() => {
+                // TODO: Viết handleChangePassword
+                handleChangePassword();
+              }}
             >
-              <FormControlLabel
-                value="ADMIN"
-                control={<Radio />}
-                label="Admin"
-              />
-              <FormControlLabel value="USER" control={<Radio />} label="User" />
-            </RadioGroup>
+              Change Password
+            </Button>
           </Grid>
         </Grid>
-        <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              handleUpdateButton();
-            }}
-          >
-            Update
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              handleResetButton();
-            }}
-          >
-            Reset
-          </Button>
-        </Box>
       </Box>
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={open}
+        autoHideDuration={4000}
+        onClose={() => setOpen(false)}
+      >
+        <Alert severity={colorMessage} sx={{ width: "100%" }}>
+          {resMessage}
+        </Alert>
+      </Snackbar>
       {renderMenu}
     </Box>
   );

@@ -128,6 +128,7 @@ const AuthSignIn = (props: any) => {
               margin="normal"
               required
               fullWidth
+              type={showPassword ? "text" : "password"}
               label="Password"
               name="password"
               onKeyDown={(e) => {

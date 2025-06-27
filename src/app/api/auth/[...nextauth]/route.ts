@@ -72,25 +72,27 @@ export const authOptions: AuthOptions = {
     signIn: "/auth/signin",
   },
   callbacks: {
-    async jwt({ token, user, account, profile, trigger }) {
+    async session({ session, token }) {
+      if (token) {
+        session.access_token = token.access_token;
+        session.user = token.user; // 👈 cập nhật đúng từ token
+      }
+      return session;
+    },
+    async jwt({ token, user, account, trigger, session }) {
       if (trigger === "signIn" && account?.provider !== "credentials") {
-        // Nếu chưa có token.user thì khởi tạo nó
         token.user = {
           name: user.name,
           email: user.email,
           image: user.image,
           password: "123456",
+          role: user.email === "cuong1606x@gmail.com" ? "ADMIN" : "USER",
         };
-        if (token.user.email === "cuong1606x@gmail.com") {
-          token.user.role = "ADMIN"; // Gán role tại đây
-        } else {
-          token.user.role = "USER"; // Gán role tại đây
-        }
       }
+
       if (trigger === "signIn" && account?.provider === "credentials") {
         //@ts-ignore
         token.access_token = user.token;
-
         token.user = {
           name: user.name,
           email: user.email,
@@ -98,16 +100,15 @@ export const authOptions: AuthOptions = {
           role: user.role,
         };
       }
-      return token;
-    },
 
-    async session({ session, token, user }) {
-      if (token) {
-        session.access_token = token.access_token;
-        session.user.password = token.user.password;
-        session.user = token.user;
+      if (trigger === "update" && session?.user) {
+        token.user = {
+          ...token.user,
+          ...session.user,
+        };
       }
-      return session;
+
+      return token;
     },
   },
 };

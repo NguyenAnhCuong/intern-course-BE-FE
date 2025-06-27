@@ -179,6 +179,7 @@ const AuthSignUp = (props: any) => {
               variant="outlined"
               margin="normal"
               required
+              type={showPassword ? "text" : "password"}
               fullWidth
               label="Password"
               name="password"
