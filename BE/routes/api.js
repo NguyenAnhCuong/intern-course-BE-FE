@@ -168,10 +168,14 @@ router.get("/iot/data", async (req, res) => {
 });
 
 // GET /alerts: Lấy danh sách alert
-router.get("/alerts", async (req, res) => {
+router.get("/alerts", verifyToken, async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM alerts");
-    res.json(rows);
+    const email = req.user.email;
+    const [rows] = await pool.query(
+      "SELECT * FROM alerts where user_email = ?",
+      [email]
+    );
+    res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -179,27 +183,28 @@ router.get("/alerts", async (req, res) => {
 
 // POST /alerts: Tạo alert thủ công
 router.post("/alerts", async (req, res) => {
-  const { deviceId, message, type } = req.body;
-  if (!deviceId || !message) {
-    return res
-      .status(400)
-      .json({ error: "Device ID and message are required" });
+  const { deviceId, message, type, userEmail } = req.body;
+  if (!deviceId || !message || !userEmail) {
+    return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
   }
+
   try {
     await pool.query(
-      "INSERT INTO alerts (device_id, message, type) VALUES (?, ?, ?)",
-      [deviceId, message, type || "email"]
+      "INSERT INTO alerts (id,device_id, message, type, user_email) VALUES (?,?, ?, ?, ?)",
+      [uuidv4(), deviceId, message, type || "email", userEmail]
     );
+
     if (type === "email" || !type) {
       const mailOptions = {
         from: process.env.EMAIL_USER,
-        to: "recipient-email@example.com",
-        subject: "IoT Manual Alert",
+        to: userEmail,
+        subject: "Cảnh báo từ thiết bị IoT",
         text: message,
       };
       await transporter.sendMail(mailOptions);
     }
-    res.status(201).json({ message: "Alert created" });
+
+    res.status(201).json({ message: "Alert đã được gửi" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -54,7 +54,7 @@ const transporter = nodemailer.createTransport({
 async function sendEmailAlert(data) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: "lufyvsnaruto11@gmail.com", //  email
+    to: process.env.EMAIL_RECEIVER, //  email
     subject: "🔥 Cảnh báo từ thiết bị IoT",
     text: `Thiết bị ${data.deviceId} báo nhiệt độ/gas cao: ${
       data.temperature || data.gas
@@ -68,6 +68,12 @@ async function sendEmailAlert(data) {
     console.error("❌ Gửi email lỗi:", error.message);
   }
 }
+
+// sendEmailAlert({
+//   deviceId: "device_temp_01",
+//   temperature: 40,
+//   timestamp: new Date().toISOString(),
+// });
 
 // ✅ Hàm chọn bảng theo loại thiết bị
 function getTableNameFromDeviceId(deviceId) {
