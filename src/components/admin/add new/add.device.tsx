@@ -106,6 +106,7 @@ const AddDevicePage = () => {
             ))}
           </TextField>
           <TextField
+            required
             sx={{ mx: 5 }}
             fullWidth
             variant="standard"
@@ -131,6 +132,7 @@ const AddDevicePage = () => {
             ))}
           </TextField>
           <TextField
+            required
             sx={{ mx: 5 }}
             variant="standard"
             value={name}

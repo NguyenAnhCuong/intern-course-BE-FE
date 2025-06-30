@@ -25,14 +25,25 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
-import { useState } from "react";
-import { Breadcrumbs, rgbToHex, Tooltip, useTheme } from "@mui/material";
+import { useEffect, useState } from "react";
+import {
+  Breadcrumbs,
+  Chip,
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  rgbToHex,
+  Tooltip,
+  useTheme,
+} from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LanguageIconComponent from "../icon/languge.icon";
 import { signIn, signOut, useSession } from "next-auth/react";
 import AvatarHeader from "../icon/avatar.header";
 import MenuHeader from "../render/menu.list";
+import SendMailModal from "./modal/send.mail.modal";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -76,9 +87,15 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const HeaderAdmin = () => {
   const { data: session } = useSession();
+  const [emailEl, setEmailEl] = useState<null | HTMLElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     useState<null | HTMLElement>(null);
+  const [openSendMailModal, setOpenSendMailModal] = useState(false);
+
+  const [listEmail, setListEmail] = useState<IMail[]>([]);
+  const [filter, setFilter] = useState<"all" | "unread" | "archived">("all");
+  const [counts, setCounts] = useState({ total: 0, unread: 0, archived: 0 });
 
   const pathname = usePathname();
   const pathSegments = pathname.split("/").filter((segment) => segment); // ["admin", "dashboard"]
@@ -99,6 +116,187 @@ const HeaderAdmin = () => {
   const handleMobileMenuClose = () => {
     setMobileMoreAnchorEl(null);
   };
+
+  const handleEmailOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setEmailEl(event.currentTarget);
+  };
+
+  const handleEmailClose = () => {
+    setEmailEl(null);
+  };
+
+  useEffect(() => {
+    if (session) {
+      fetchListMail();
+    }
+  }, [emailEl]);
+
+  const fetchListMail = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/alerts`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setListEmail(data);
+      // Đếm số lượng
+      const total = data.length;
+      const unread = data.filter((item: any) => !item.is_read).length;
+      const archived = data.filter((item: any) => item.archived).length;
+      setCounts({ total, unread, archived });
+    } else {
+      alert(`Something went wrong!.`);
+    }
+  };
+
+  const getChipStyle = (active: boolean) => ({
+    px: 2,
+    py: 0.5,
+    fontWeight: 500,
+    color: active ? "#fff" : "#333",
+    backgroundColor: active ? "#1976d2" : "#f0f2f5",
+    border: active ? "none" : "1px solid #ccc",
+    borderRadius: "20px",
+    transition: "all 0.3s",
+    "&:hover": {
+      backgroundColor: active ? "#1565c0" : "#e0e0e0",
+    },
+  });
+
+  const renderMenuEmail = (
+    <Drawer
+      anchor="right"
+      open={Boolean(emailEl)}
+      onClose={handleEmailClose}
+      PaperProps={{
+        sx: { width: 400 },
+      }}
+    >
+      <Box display="flex" flexDirection="column" height="100%">
+        {/* Header */}
+        <AppBar
+          position="static"
+          sx={{
+            bgcolor: "white",
+            color: "black",
+            boxShadow: 0,
+            px: 2,
+            py: 1.5,
+          }}
+        >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              fontSize={"20px"}
+              sx={{ flex: 1 }}
+            >
+              Notifications
+            </Typography>
+            <Divider />
+            <Box display="flex" justifyContent="space-between" gap={2} mt={1}>
+              <Chip
+                sx={getChipStyle(filter === "all")}
+                label={`All ${counts.total}`}
+                clickable
+                color={filter === "all" ? "primary" : "default"}
+                onClick={() => setFilter("all")}
+              />
+              <Chip
+                sx={getChipStyle(filter === "unread")}
+                label={`Unread ${counts.unread}`}
+                clickable
+                color={filter === "unread" ? "primary" : "default"}
+                onClick={() => setFilter("unread")}
+              />
+              <Chip
+                sx={getChipStyle(filter === "archived")}
+                label={`Archived ${counts.unread}`}
+                clickable
+                color={filter === "archived" ? "primary" : "default"}
+                onClick={() => setFilter("archived")}
+              />
+            </Box>
+          </Box>
+        </AppBar>
+
+        {/* Danh sách email */}
+        <Box flex={1} overflow="auto">
+          <List sx={{ px: 2 }}>
+            {listEmail.length > 0 ? (
+              listEmail.map((item) => (
+                <ListItem
+                  key={item.id}
+                  sx={{
+                    alignItems: "flex-start",
+                    borderBottom: "1px solid #eee",
+                    py: 2,
+                    px: 0,
+                  }}
+                >
+                  <Box display="flex" gap={2}>
+                    <Box>
+                      <Typography fontWeight={600}>
+                        {item.device_id}:
+                        <Typography component="span" fontWeight={400}>
+                          {item.message}
+                        </Typography>
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {item.created_at}
+                      </Typography>
+
+                      {/* Action buttons nếu có */}
+                      {item.type === "friend_request" && (
+                        <Box display="flex" gap={1} mt={1}>
+                          <button className="btn btn-primary">Accept</button>
+                          <button className="btn btn-outline">Decline</button>
+                        </Box>
+                      )}
+
+                      {item.type === "mention" && (
+                        <Box mt={1} p={1} bgcolor="#F0F2F5" borderRadius={2}>
+                          <Typography variant="body2">content</Typography>
+                          <button className="btn btn-secondary mt-1">
+                            Reply
+                          </button>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                </ListItem>
+              ))
+            ) : (
+              <ListItem>Không có thông báo</ListItem>
+            )}
+          </List>
+        </Box>
+
+        {/* Footer */}
+        <Box textAlign="center" py={2} borderTop="1px solid #eee">
+          <Typography
+            variant="body2"
+            sx={{
+              cursor: "pointer",
+              color: "#1976d2",
+              fontWeight: 500,
+              "&:hover": { textDecoration: "underline" },
+            }}
+            onClick={() => {
+              setOpenSendMailModal(true); // 👉 Mở modal
+            }}
+          >
+            Send Email
+          </Typography>
+        </Box>
+      </Box>
+    </Drawer>
+  );
 
   return (
     <Box
@@ -234,11 +432,12 @@ const HeaderAdmin = () => {
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Tooltip title="Email">
                       <IconButton
+                        onClick={handleEmailOpen}
                         size="large"
                         aria-label="show 4 new mails"
                         color="inherit"
                       >
-                        <Badge>
+                        <Badge badgeContent={counts.total} color="error">
                           <MailIcon
                             sx={{
                               "&:hover": {
@@ -319,6 +518,12 @@ const HeaderAdmin = () => {
         onClose={handleMobileMenuClose}
         isMobile
       />
+      <SendMailModal
+        open={openSendMailModal}
+        onClose={() => setOpenSendMailModal(false)}
+      />
+
+      {renderMenuEmail}
     </Box>
   );
 };

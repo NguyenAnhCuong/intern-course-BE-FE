@@ -15,6 +15,11 @@ import {
   TableRow,
   Typography,
   CircularProgress,
+  Card,
+  CardHeader,
+  CardContent,
+  TextField,
+  MenuItem,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -26,14 +31,11 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { useRouter } from "next/navigation";
-
-interface IDevices {
-  id: string;
-  name: string;
-  status: string;
-}
+import { METHODS } from "http";
+import { useSession } from "next-auth/react";
 
 const ManageDevices = () => {
+  const { data: session } = useSession();
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -42,30 +44,61 @@ const ManageDevices = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
 
-  const fetchDevices = async () => {
+  const [dataDevices, setDataDevices] = useState<IDevices[]>([]);
+  const [dataUsers, setDataUsers] = useState<IAccounts[]>([]);
+
+  const [selectedDevice, setSelectedDevice] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<string>("");
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/devices`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      const res = await response.json();
-      setRows(res.data);
+      const [resDevices, resUsers] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/devices`),
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users`),
+      ]);
+
+      const dataD = await resDevices.json();
+      const dataU = await resUsers.json();
+
+      setDataDevices(dataD.data ?? []);
+      setRows(dataD.data ?? []);
+      setDataUsers(dataU ?? []);
     } catch (error) {
-      console.error("Lỗi khi fetch danh sách thiết bị:", error);
+      console.error("Lỗi khi lấy dữ liệu:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDevices();
-  }, []);
+  const handlePermit = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/access`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({
+        user_id: selectedUser,
+        device_id: selectedDevice,
+      }),
+    });
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+    if (res.ok) {
+      alert("Phân quyền thành công!");
+      // Có thể reset form:
+      setSelectedDevice("");
+      setSelectedUser("");
+    } else {
+      alert(`Lỗi khi phân quyền: Something went wrong!.`);
+    }
+  };
+
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -80,7 +113,7 @@ const ManageDevices = () => {
     router.push(`/admin/devices/${id}`);
   };
 
-  const handleDeleteDevice = async (id: string) => {
+  const handleDeleteDevice = (id: string) => {
     setSelectedId(id);
     setOpenDialog(true);
   };
@@ -93,16 +126,14 @@ const ManageDevices = () => {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/devices/${selectedId}`,
         {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
 
       const data = await res.json();
 
       if (res.ok) {
-        fetchDevices(); // reload danh sách
+        fetchAllData(); // reload lại danh sách
       } else {
         alert(`Error: ${data.error}`);
       }
@@ -121,124 +152,179 @@ const ManageDevices = () => {
 
   return (
     <Box p={4} sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h5" fontWeight={600}>
-          Manage Devices
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          color="primary"
-          href="/admin/devices/add"
-        >
-          New Device
-        </Button>
-      </Box>
-
-      {/* Table */}
-      <Paper elevation={3}>
-        <TableContainer>
-          <Box sx={{ overflowX: "auto" }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell align="left">ID</TableCell>
-                  <TableCell align="left">Device Name</TableCell>
-                  <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <CircularProgress size={24} />
-                    </TableCell>
-                  </TableRow>
-                ) : Array.isArray(rows) ? (
-                  rows
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell align="left">{row.id}</TableCell>
-                        <TableCell align="left">{row.name}</TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            label={
-                              row.status === "active" ? "Active" : "Deactive"
-                            }
-                            color={
-                              row.status === "active" ? "success" : "error"
-                            }
-                            variant="outlined"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton
-                            onClick={() => handleEditDevice(row.id)}
-                            size="small"
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => handleDeleteDevice(row.id)}
-                            size="small"
-                          >
-                            <DeleteIcon fontSize="small" color="error" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      Không có dữ liệu
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Box>
-        </TableContainer>
-
-        {/* Pagination */}
-        <TablePagination
-          component="div"
-          count={rows.length ?? 0}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-
-        <Dialog
-          open={openDialog}
-          onClose={handleCloseDialog}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle id="alert-dialog-title">Delete Device</DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Confirm delete of device with ID: <strong>{selectedId}</strong>?
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancle</Button>
-            <Button onClick={handleConfirmDelete} color="error" autoFocus>
-              Confirm
+      <Card>
+        <CardHeader
+          title="Manage Devices"
+          action={
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              href="/admin/devices/add"
+              color="primary"
+            >
+              New
             </Button>
-          </DialogActions>
-        </Dialog>
-      </Paper>
+          }
+        />
+        <Paper elevation={3}>
+          <TableContainer>
+            <Box sx={{ overflowX: "auto" }}>
+              <Table sx={{ minWidth: 550 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="left">ID</TableCell>
+                    <TableCell align="left">Device Name</TableCell>
+                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="center">Action</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        <CircularProgress size={24} />
+                      </TableCell>
+                    </TableRow>
+                  ) : rows.length > 0 ? (
+                    rows
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((row) => (
+                        <TableRow
+                          key={row.id}
+                          sx={{
+                            "&:hover": {
+                              backgroundColor: "#f5f5f5",
+                              cursor: "pointer",
+                            },
+                          }}
+                        >
+                          <TableCell>{row.id}</TableCell>
+                          <TableCell>{row.name}</TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={
+                                row.status === "active" ? "Active" : "Deactive"
+                              }
+                              color={
+                                row.status === "active" ? "success" : "error"
+                              }
+                              variant="outlined"
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              onClick={() => handleEditDevice(row.id)}
+                              size="small"
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              onClick={() => handleDeleteDevice(row.id)}
+                              size="small"
+                            >
+                              <DeleteIcon fontSize="small" color="error" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        Không có dữ liệu
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Box>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={rows.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      </Card>
+
+      {/* Dialog xác nhận xóa */}
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>Delete Device</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Confirm delete of device with ID: <strong>{selectedId}</strong>?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Form phân quyền */}
+      <Card>
+        <CardHeader title="Grant Access" />
+        <CardContent>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { md: "row", xs: "column" },
+              gap: 5,
+              mt: 1,
+              "& .MuiTextField-root": {
+                width: { md: "28ch", xs: "none" },
+                maxWidth: { md: "none", xs: "28ch" },
+              },
+            }}
+          >
+            <TextField
+              variant="standard"
+              select
+              label="Select Device"
+              value={selectedDevice}
+              onChange={(e) => setSelectedDevice(e.target.value)}
+            >
+              {dataDevices.map((option) => (
+                <MenuItem key={option.id} value={option.id}>
+                  ID: {option.id} - Name: {option.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              variant="standard"
+              select
+              label="Select User"
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+            >
+              {dataUsers.map((option) => (
+                <MenuItem key={option.id} value={option.id}>
+                  Email: {option.email} - Name: {option.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={() => {
+                  handlePermit();
+                }}
+              >
+                Permit
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

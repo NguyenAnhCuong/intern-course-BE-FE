@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import LineChartComponent from "@/components/admin/charts/line.chart.page";
 import PieChartComponent from "./charts/pie.chart.page";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LineChartModal from "./modal/line.chart.modal";
 import PieChartModal from "./modal/pie.chart.modal";
 import { useSession } from "next-auth/react";
@@ -45,13 +45,8 @@ function CustomTabPanel(props: TabPanelProps) {
 const ChartAdmin = () => {
   const { data: session } = useSession();
 
-  const [openLineChartModal, setOpenLineChartModal] = useState<boolean>(false);
-  const handleOpenLineChart = () => setOpenLineChartModal(true);
-  const handleCloseLineChart = () => setOpenLineChartModal(false);
-
-  const [openPieChartModal, setOpenPieChartModal] = useState<boolean>(false);
-  const handleOpenPieChart = () => setOpenPieChartModal(true);
-  const handleClosePieChart = () => setOpenPieChartModal(false);
+  const [openLineChartModal, setOpenLineChartModal] = useState(false);
+  const [openPieChartModal, setOpenPieChartModal] = useState(false);
 
   const [dataLineChart, setDataLineChart] = useState<ChartDataItem[]>([]);
   const [dataPieChart, setDataPieChart] = useState<
@@ -60,7 +55,15 @@ const ChartAdmin = () => {
   const [value, setValue] = useState(0);
   const [dataTab, setDataTab] = useState<any[]>([]);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const prevRecordsRef = useRef<IotData[]>([]);
+  const hasAlertedRef = useRef(false); // Cờ để không alert lặp
+
+  const handleOpenLineChart = () => setOpenLineChartModal(true);
+  const handleCloseLineChart = () => setOpenLineChartModal(false);
+  const handleOpenPieChart = () => setOpenPieChartModal(true);
+  const handleClosePieChart = () => setOpenPieChartModal(false);
+
+  const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 
@@ -89,7 +92,7 @@ const ChartAdmin = () => {
 
     const allDeviceIds = Array.from(deviceSet);
 
-    const completedData = Object.values(grouped).map((entry) => {
+    return Object.values(grouped).map((entry) => {
       allDeviceIds.forEach((id) => {
         if (!(id in entry)) {
           entry[id] = null;
@@ -97,8 +100,6 @@ const ChartAdmin = () => {
       });
       return entry;
     });
-
-    return { data: completedData, deviceIds: allDeviceIds };
   };
 
   const groupByDevice = (data: any[]) => {
@@ -110,77 +111,111 @@ const ChartAdmin = () => {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   };
 
-  const fetchData = async () => {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/iot/data`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+  const fetchData = async (deviceId: string) => {
+    const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND_URL}/iot/data`);
+    url.searchParams.append("deviceId", deviceId);
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
     const rawData: IotData[] = await response.json();
-    const formatted = groupDataByTime(rawData.reverse());
 
-    setDataLineChart(formatted.data);
+    // ✅ Lấy 3 bản ghi cuối cùng
+    const lastThree = rawData.slice(-3);
 
-    const pieData = groupByDevice(rawData);
-    setDataPieChart(pieData);
+    // 🔄 So sánh với bản ghi trước
+    const isSame =
+      JSON.stringify(lastThree) === JSON.stringify(prevRecordsRef.current);
+
+    if (!isSame) {
+      prevRecordsRef.current = lastThree;
+      hasAlertedRef.current = false; // reset alert flag nếu có thay đổi
+    }
+
+    // 🚨 Gửi alert nếu có nhiệt độ vượt ngưỡng
+    if (!hasAlertedRef.current) {
+      const exceeded = lastThree.some((item) => item.temperature! > 34);
+      if (exceeded) {
+        hasAlertedRef.current = true;
+
+        const message = `Cảnh báo: thiết bị ${deviceId} ghi nhận nhiệt độ vượt ngưỡng 34 độ.`;
+
+        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/alerts`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            deviceId,
+            message,
+            userEmail: session?.user?.email,
+          }),
+        });
+      }
+    }
+
+    // 📊 Cập nhật biểu đồ
+    const reversedData = [...rawData].reverse();
+    const formatted = groupDataByTime(reversedData);
+    setDataLineChart(formatted);
+    setDataPieChart(groupByDevice(rawData));
   };
 
   const fetchDataTab = async () => {
-    try {
-      const accessToken = session?.access_token;
-      if (!accessToken) return;
+    const accessToken = session?.access_token;
+    if (!accessToken) return;
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/devices`,
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/devices`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json();
+    const allDevices = data.data || [];
+
+    const allowedDevices = [];
+    for (const device of allDevices) {
+      const checkRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/devices/${device.id}`,
         {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
-      const data = await res.json();
-      const allDevices = data.data || [];
-
-      const allowedDevices = [];
-      for (const device of allDevices) {
-        const checkRes = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/devices/${device.id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        if (checkRes.ok) {
-          allowedDevices.push(device);
-        }
+      if (checkRes.ok) {
+        allowedDevices.push(device);
       }
-      setDataTab(allowedDevices);
-      await fetchData();
-    } catch (err) {
-      console.error("Lỗi khi fetchDataTab:", err);
     }
+    setDataTab(allowedDevices);
   };
 
+  // Lấy danh sách thiết bị 1 lần khi có session
   useEffect(() => {
-    if (!session) return;
-    fetchDataTab(); // Chỉ gọi 1 lần khi session sẵn sàng
+    if (session) {
+      fetchDataTab();
+    }
   }, [session]);
 
+  // Khi có dataTab và tabIndex thay đổi => fetch lại dữ liệu của thiết bị
   useEffect(() => {
-    if (!session) return;
+    if (!session || dataTab.length === 0) return;
+    const selectedDevice = dataTab[value];
+    if (selectedDevice) {
+      fetchData(selectedDevice.id);
 
-    fetchData(); // Gọi lần đầu
+      const interval = setInterval(() => {
+        fetchData(selectedDevice.id);
+      }, 10000);
 
-    const interval = setInterval(() => {
-      fetchData(); // Gọi mỗi 10s
-    }, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [session, value, dataTab]);
 
-    return () => clearInterval(interval); // cleanup
-  }, [session]);
+  const selectedDeviceId = dataTab[value]?.id;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -194,7 +229,7 @@ const ChartAdmin = () => {
                   onChange={handleChange}
                   aria-label="device tabs"
                 >
-                  {dataTab.map((item, index) => (
+                  {dataTab.map((item) => (
                     <Tab label={item.name} key={item.id} />
                   ))}
                 </Tabs>
@@ -206,51 +241,26 @@ const ChartAdmin = () => {
                     tabIndex={index}
                     deviceId={item.id}
                     data={dataLineChart.filter((d) => d[item.id] !== null)}
-                    fetchData={fetchData}
+                    fetchData={() => fetchData(item.id)}
                     handleOpenLineChart={handleOpenLineChart}
                   />
-                  {/* <Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography sx={{ my: 2 }}>Pie Chart</Typography>
-                      <Button
-                        variant="outlined"
-                        size="medium"
-                        onClick={handleOpenPieChart}
-                      >
-                        Detail
-                      </Button>
-                    </Box>
-                    <Divider />
-                    <Box sx={{ width: "100%", height: "500px" }}>
-                      <PieChartComponent
-                        data={dataPieChart}
-                        fetchData={fetchData}
-                      />
-                    </Box>
-                  </Box> */}
                 </CustomTabPanel>
               ))}
             </>
           ) : (
             <Typography sx={{ p: 2 }}>
-              Bạn không có quyền truy cập bất kỳ thiết bị nào.
+              You do not have access to any devices.
             </Typography>
           )}
         </Box>
 
         <LineChartModal
-          deviceId={dataTab[value]?.id}
+          deviceId={selectedDeviceId}
           open={openLineChartModal}
           handleClose={handleCloseLineChart}
         />
         <PieChartModal
-          deviceId={dataTab[value]?.id}
+          deviceId={selectedDeviceId}
           rows={dataPieChart}
           open={openPieChartModal}
           handleClose={handleClosePieChart}

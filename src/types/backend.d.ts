@@ -46,4 +46,15 @@ declare global {
     name: string;
     status: string;
   }
+
+  interface IMail {
+    archived: boolean;
+    created_at: DateTime;
+    device_id: string;
+    id: string;
+    is_read: boolean;
+    message: string;
+    type: string;
+    user_email: string;
+  }
 }
