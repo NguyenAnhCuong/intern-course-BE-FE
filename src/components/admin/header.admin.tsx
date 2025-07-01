@@ -43,7 +43,7 @@ import LanguageIconComponent from "../icon/languge.icon";
 import { signIn, signOut, useSession } from "next-auth/react";
 import AvatarHeader from "../icon/avatar.header";
 import MenuHeader from "../render/menu.list";
-import SendMailModal from "./modal/send.mail.modal";
+import SendMailModal from "@/components/admin/modal/send.mail.modal";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",

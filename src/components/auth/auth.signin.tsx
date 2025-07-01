@@ -32,34 +32,34 @@ const AuthSignIn = (props: any) => {
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const [isErrorUsername, setIsErrorUsername] = useState<boolean>(false);
+  const [isErrorEmail, setIsErrorEmail] = useState<boolean>(false);
   const [isErrorPassword, setIsErrorPassword] = useState<boolean>(false);
 
-  const [errorUsername, setErrorUsername] = useState<string>("");
+  const [errorEmail, setErrorEmail] = useState<string>("");
   const [errorPassword, setErrorPassword] = useState<string>("");
 
   const handleSubmit = async () => {
-    setIsErrorUsername(false);
+    setIsErrorEmail(false);
     setIsErrorPassword(false);
-    setErrorUsername("");
+    setErrorEmail("");
     setErrorPassword("");
 
-    if (!username) {
-      setIsErrorUsername(true);
-      setErrorUsername("Username is not empty");
+    if (!email) {
+      setIsErrorEmail(true);
+      setErrorEmail("Email is not empty");
       return;
     }
     if (!password) {
       setIsErrorPassword(true);
-      setErrorPassword("Passwprd is not empty");
+      setErrorPassword("Password is not empty");
       return;
     }
 
     const res = await signIn("credentials", {
-      username,
+      email,
       password,
       redirect: false,
     });
@@ -68,7 +68,7 @@ const AuthSignIn = (props: any) => {
       router.push("/");
     } else {
       setOpen(true);
-      setResMessage("Invalid Username/password!");
+      setResMessage("Invalid Email/password!");
     }
   };
 
@@ -111,16 +111,16 @@ const AuthSignIn = (props: any) => {
               <Typography component={"h1"}>Sign in</Typography>
             </Box>
             <TextField
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               variant="outlined"
               margin="normal"
               required
               fullWidth
-              label="Username"
-              name="username"
+              label="Email"
+              name="email"
               autoFocus
-              error={isErrorUsername}
-              helperText={errorUsername}
+              error={isErrorEmail}
+              helperText={errorEmail}
             />
             <TextField
               onChange={(e) => setPassword(e.target.value)}

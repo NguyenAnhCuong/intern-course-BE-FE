@@ -10,7 +10,7 @@ export const authOptions: AuthOptions = {
       // The name to display on the sign in form (e.g. "Sign in with...")
       name: "Guess",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        email: { label: "Email", type: "text", placeholder: "jsmith" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
@@ -38,7 +38,7 @@ export const authOptions: AuthOptions = {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              name: credentials?.username, // CHỖ NÀY PHẢI TRÙNG VỚI BACKEND
+              email: credentials?.email, // CHỖ NÀY PHẢI TRÙNG VỚI BACKEND
               password: credentials?.password,
             }),
           }

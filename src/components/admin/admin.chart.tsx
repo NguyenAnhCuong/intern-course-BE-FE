@@ -140,7 +140,7 @@ const ChartAdmin = () => {
       if (exceeded) {
         hasAlertedRef.current = true;
 
-        const message = `Cảnh báo: thiết bị ${deviceId} ghi nhận nhiệt độ vượt ngưỡng 34 độ.`;
+        const message = `🔥 Cảnh báo từ thiết bị IoT: thiết bị ${deviceId} ghi nhận nhiệt độ vượt ngưỡng 34 độ.`;
 
         await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/alerts`, {
           method: "POST",
