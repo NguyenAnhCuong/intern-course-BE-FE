@@ -14,13 +14,7 @@ app.use(express.json());
 app.use("/api", deviceRouter); // gắn router
 
 // ✅ Kết nối CSDL
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: 3307,
-});
+const pool = require("./config/db.js");
 
 // ✅ Kết nối MQTT Broker
 const mqttClient = mqtt.connect(

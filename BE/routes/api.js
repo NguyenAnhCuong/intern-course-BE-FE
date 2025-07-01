@@ -333,16 +333,16 @@ router.post("/register", async (req, res) => {
 
 // POST /api/login
 router.post("/login", async (req, res) => {
-  const { name, password } = req.body;
+  const { email, password } = req.body;
 
   try {
     // Truy vấn người dùng theo name
-    const [users] = await pool.query("SELECT * FROM users WHERE name = ?", [
-      name,
+    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
+      email,
     ]);
 
     if (users.length === 0) {
-      return res.status(400).json({ message: "Sai tên người dùng" });
+      return res.status(400).json({ message: "Sai Email" });
     }
 
     const user = users[0];
@@ -388,8 +388,8 @@ router.post("/access", verifyToken, requireAdmin, async (req, res) => {
 
   try {
     await pool.query(
-      "INSERT IGNORE INTO user_device_permissions (user_id, device_id) VALUES (?, ?)",
-      [user_id, device_id]
+      "INSERT IGNORE INTO user_device_permissions (id,user_id, device_id) VALUES (?,?, ?)",
+      [uuidv4(), user_id, device_id]
     );
     res.json({ message: "Cấp quyền thành công" });
   } catch (err) {

@@ -8,7 +8,7 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD || "", // mặc định XAMPP không có pass
   database: process.env.DB_NAME,
-  port: 3307,
+  port: process.env.DB_PORT,
 });
 
 module.exports = pool;
