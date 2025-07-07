@@ -71,6 +71,10 @@ CREATE TABLE alerts (
   archived BOOLEAN DEFAULT FALSE,
   CONSTRAINT fk_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
 );
+
+INSERT INTO users (id, name,email,password, role)
+VALUES (UUID(),'Admin',"admin@gmail.com" , "$2b$10$/JK3VwV59N4q2o214A7Y/.O/Yglp3jy0dbMXUaEkqKG5WC2tFbc32","ADMIN");
+
 ```
 
 5. Giả lập lấy dữ liệu iot: cd .\client -> node .\iot_client1.js
