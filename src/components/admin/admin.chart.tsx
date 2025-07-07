@@ -122,8 +122,8 @@ const ChartAdmin = () => {
 
     const rawData: IotData[] = await response.json();
 
-    // ✅ Lấy 3 bản ghi cuối cùng
-    const lastThree = rawData.slice(-3);
+    // ✅ Lấy 3 bản ghi dau tien
+    const lastThree = rawData.slice(0, 3);
 
     // 🔄 So sánh với bản ghi trước
     const isSame =
@@ -136,7 +136,10 @@ const ChartAdmin = () => {
 
     // 🚨 Gửi alert nếu có nhiệt độ vượt ngưỡng
     if (!hasAlertedRef.current) {
-      const exceeded = lastThree.some((item) => item.temperature! > 34);
+      const exceeded = lastThree.some((item) => {
+        return item.temperature! > 34;
+      });
+
       if (exceeded) {
         hasAlertedRef.current = true;
 
