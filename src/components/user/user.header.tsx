@@ -9,7 +9,7 @@ import {
   LanguageOutlined,
   Login,
 } from "@mui/icons-material";
-import { styled, alpha } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -17,13 +17,10 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import InputBase from "@mui/material/InputBase";
 import Badge from "@mui/material/Badge";
-import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import MailIcon from "@mui/icons-material/Mail";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { useEffect, useState } from "react";
 import {
@@ -33,25 +30,24 @@ import {
   Drawer,
   List,
   ListItem,
-  rgbToHex,
   Tooltip,
-  useTheme,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import LanguageIconComponent from "../icon/languge.icon";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import AvatarHeader from "../icon/avatar.header";
 import MenuHeader from "../render/menu.list";
 import SendMailModal from "@/components/admin/modal/send.mail.modal";
+import LanguageIconComponent from "../icon/languge.icon";
+import { useMailContext } from "@/lib/context/mail.context";
 import Image from "next/image";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: "#e0e0e0", // 💡 Màu nền chính
+  backgroundColor: "#e0e0e0",
   "&:hover": {
-    backgroundColor: "#E0DCDC", // 💡 Màu khi hover
+    backgroundColor: "#E0DCDC",
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
@@ -76,7 +72,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: "inherit",
   "& .MuiInputBase-input": {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create("width"),
     width: "100%",
@@ -86,20 +81,19 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const HeaderUser = () => {
+const HeaderAdmin = () => {
   const { data: session } = useSession();
   const [emailEl, setEmailEl] = useState<null | HTMLElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     useState<null | HTMLElement>(null);
   const [openSendMailModal, setOpenSendMailModal] = useState(false);
-
-  const [listEmail, setListEmail] = useState<IMail[]>([]);
   const [filter, setFilter] = useState<"all" | "unread" | "archived">("all");
-  const [counts, setCounts] = useState({ total: 0, unread: 0, archived: 0 });
 
   const pathname = usePathname();
-  const pathSegments = pathname.split("/").filter((segment) => segment); // ["admin", "dashboard"]
+  const pathSegments = pathname.split("/").filter((segment) => segment);
+
+  const { listEmail, counts, fetchListMail } = useMailContext();
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -132,29 +126,6 @@ const HeaderUser = () => {
     }
   }, [emailEl]);
 
-  const fetchListMail = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/alerts`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.access_token}`,
-      },
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      setListEmail(data);
-      // Đếm số lượng
-      const total = data.length;
-      const unread = data.filter((item: any) => !item.is_read).length;
-      const archived = data.filter((item: any) => item.archived).length;
-      setCounts({ total, unread, archived });
-    } else {
-      alert(`Something went wrong!.`);
-    }
-  };
-
   const getChipStyle = (active: boolean) => ({
     px: 2,
     py: 0.5,
@@ -174,12 +145,9 @@ const HeaderUser = () => {
       anchor="right"
       open={Boolean(emailEl)}
       onClose={handleEmailClose}
-      PaperProps={{
-        sx: { width: 400 },
-      }}
+      PaperProps={{ sx: { width: 400 } }}
     >
       <Box display="flex" flexDirection="column" height="100%">
-        {/* Header */}
         <AppBar
           position="static"
           sx={{
@@ -191,12 +159,7 @@ const HeaderUser = () => {
           }}
         >
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Typography
-              variant="h6"
-              fontWeight={600}
-              fontSize={"20px"}
-              sx={{ flex: 1 }}
-            >
+            <Typography variant="h6" fontWeight={600} fontSize="20px">
               Notifications
             </Typography>
             <Divider />
@@ -205,32 +168,28 @@ const HeaderUser = () => {
                 sx={getChipStyle(filter === "all")}
                 label={`All ${counts.total}`}
                 clickable
-                color={filter === "all" ? "primary" : "default"}
                 onClick={() => setFilter("all")}
               />
               <Chip
                 sx={getChipStyle(filter === "unread")}
                 label={`Unread ${counts.unread}`}
                 clickable
-                color={filter === "unread" ? "primary" : "default"}
                 onClick={() => setFilter("unread")}
               />
               <Chip
                 sx={getChipStyle(filter === "archived")}
-                label={`Archived ${counts.unread}`}
+                label={`Archived ${counts.archived}`}
                 clickable
-                color={filter === "archived" ? "primary" : "default"}
                 onClick={() => setFilter("archived")}
               />
             </Box>
           </Box>
         </AppBar>
 
-        {/* Danh sách email */}
         <Box flex={1} overflow="auto">
           <List sx={{ px: 2 }}>
             {listEmail.length > 0 ? (
-              listEmail.map((item) => (
+              listEmail.map((item: any) => (
                 <ListItem
                   key={item.id}
                   sx={{
@@ -251,34 +210,16 @@ const HeaderUser = () => {
                       <Typography variant="caption" color="text.secondary">
                         {item.created_at}
                       </Typography>
-
-                      {/* Action buttons nếu có */}
-                      {item.type === "friend_request" && (
-                        <Box display="flex" gap={1} mt={1}>
-                          <button className="btn btn-primary">Accept</button>
-                          <button className="btn btn-outline">Decline</button>
-                        </Box>
-                      )}
-
-                      {item.type === "mention" && (
-                        <Box mt={1} p={1} bgcolor="#F0F2F5" borderRadius={2}>
-                          <Typography variant="body2">content</Typography>
-                          <button className="btn btn-secondary mt-1">
-                            Reply
-                          </button>
-                        </Box>
-                      )}
                     </Box>
                   </Box>
                 </ListItem>
               ))
             ) : (
-              <ListItem>Không có thông báo</ListItem>
+              <ListItem>No notifications</ListItem>
             )}
           </List>
         </Box>
 
-        {/* Footer */}
         <Box textAlign="center" py={2} borderTop="1px solid #eee">
           <Typography
             variant="body2"
@@ -288,9 +229,7 @@ const HeaderUser = () => {
               fontWeight: 500,
               "&:hover": { textDecoration: "underline" },
             }}
-            onClick={() => {
-              setOpenSendMailModal(true); // 👉 Mở modal
-            }}
+            onClick={() => setOpenSendMailModal(true)}
           >
             Send Email
           </Typography>
@@ -529,4 +468,4 @@ const HeaderUser = () => {
   );
 };
 
-export default HeaderUser;
+export default HeaderAdmin;
