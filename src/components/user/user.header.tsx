@@ -145,7 +145,12 @@ const HeaderAdmin = () => {
       anchor="right"
       open={Boolean(emailEl)}
       onClose={handleEmailClose}
-      PaperProps={{ sx: { width: 400 } }}
+      PaperProps={{
+        sx: {
+          width: { xs: "90vw", sm: 320, md: 400 },
+          maxWidth: "95vw",
+        },
+      }}
     >
       <Box display="flex" flexDirection="column" height="100%">
         <AppBar
@@ -337,7 +342,7 @@ const HeaderAdmin = () => {
               mx: 2,
               flexShrink: 0,
               flexGrow: 0.5,
-              width: { xs: "35%", md: "20%" },
+              width: { xs: "30%", md: "20%" },
             }}
           >
             <Search>

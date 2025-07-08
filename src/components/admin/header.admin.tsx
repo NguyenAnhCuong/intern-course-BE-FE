@@ -40,6 +40,7 @@ import MenuHeader from "../render/menu.list";
 import SendMailModal from "@/components/admin/modal/send.mail.modal";
 import LanguageIconComponent from "../icon/languge.icon";
 import { useMailContext } from "@/lib/context/mail.context";
+import { useSidebarContext } from "@/lib/context/sidebar.admin.context";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -93,6 +94,7 @@ const HeaderAdmin = () => {
   const pathSegments = pathname.split("/").filter((segment) => segment);
 
   const { listEmail, counts, fetchListMail } = useMailContext();
+  const { openSidebar, setOpenSidebar } = useSidebarContext();
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -117,6 +119,12 @@ const HeaderAdmin = () => {
 
   const handleEmailClose = () => {
     setEmailEl(null);
+  };
+
+  const handleOpenSidebar = (event: React.MouseEvent<HTMLElement>) => {
+    console.log("dsdsds", openSidebar);
+
+    setOpenSidebar(true);
   };
 
   useEffect(() => {
@@ -144,7 +152,12 @@ const HeaderAdmin = () => {
       anchor="right"
       open={Boolean(emailEl)}
       onClose={handleEmailClose}
-      PaperProps={{ sx: { width: { md: 400 } } }}
+      PaperProps={{
+        sx: {
+          width: { xs: "90vw", sm: 320, md: 400 },
+          maxWidth: "95vw",
+        },
+      }}
     >
       <Box display="flex" flexDirection="column" height="100%">
         <AppBar
@@ -268,7 +281,9 @@ const HeaderAdmin = () => {
               }}
             >
               {session?.user.role === "ADMIN" ? (
-                <MenuIcon />
+                <Box onClick={handleOpenSidebar}>
+                  <MenuIcon />
+                </Box>
               ) : (
                 <Link href="/" passHref style={{ textDecoration: "none" }}>
                   <Box
@@ -316,7 +331,7 @@ const HeaderAdmin = () => {
               mx: 2,
               flexShrink: 0,
               flexGrow: 0.5,
-              width: { xs: "35%", md: "20%" },
+              width: { xs: "30%", md: "20%" },
             }}
           >
             <Search>

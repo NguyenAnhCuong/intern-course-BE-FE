@@ -2,7 +2,7 @@
 import * as React from "react";
 import ThemeRegistry from "@/components/theme-registry/theme.registry";
 import NextAuthWrapper from "@/lib/next.auth.wrapper";
-import { MailProvider } from "@/lib/context/mail.context";
+import { AppProviders } from "@/lib/context.wrapper";
 
 export const metadata = {
   title: "Next.js App Router + Material UI v5",
@@ -19,7 +19,7 @@ export default function RootLayout({
       <body>
         <ThemeRegistry>
           <NextAuthWrapper>
-            <MailProvider>{children}</MailProvider>
+            <AppProviders>{children}</AppProviders>
           </NextAuthWrapper>
         </ThemeRegistry>
       </body>
