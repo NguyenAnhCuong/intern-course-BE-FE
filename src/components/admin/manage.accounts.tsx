@@ -17,28 +17,10 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import { Delete, Edit } from "@mui/icons-material";
 
-const ManageAccounts = () => {
-  const [rows, setRows] = useState<IAccounts[]>([]);
+const ManageAccounts = (props: any) => {
+  const { rows } = props;
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const fetchAccounts = async () => {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/users`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    const data = await response.json();
-
-    setRows(data);
-  };
-
-  useEffect(() => {
-    fetchAccounts(); // Fetch accounts when component mounts
-  }, []);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -81,7 +63,7 @@ const ManageAccounts = () => {
           <TableBody>
             {rows
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => (
+              .map((row: any) => (
                 <TableRow
                   key={row.id}
                   sx={{

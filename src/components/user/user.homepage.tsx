@@ -1,18 +1,12 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { Box, Card, Typography, Chip, IconButton } from "@mui/material";
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Box } from "@mui/material";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Navigation, Pagination, Scrollbar, A11y } from "swiper/modules";
 import Section2 from "@/components/user/homepage/homepage.section2";
 import Section1 from "@/components/user/homepage/homepage.section1";
 
 const HomePage = () => {
-  const { data: session } = useSession();
-
   return (
     <Box
       sx={{
