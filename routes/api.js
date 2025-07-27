@@ -221,6 +221,7 @@ router.get("/users", async (req, res) => {
 
 router.post("/users", async (req, res) => {
   const { username, email, password, role } = req.body;
+
   if (!username || !email || !password || !role) {
     return res.status(400).json({ error: "All fields are required" });
   }
@@ -228,8 +229,8 @@ router.post("/users", async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
-      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
-      [username, email, hashedPassword, role]
+      "INSERT INTO users (id,name, email, password, role) VALUES (?,?, ?, ?, ?)",
+      [uuidv4(), username, email, hashedPassword, role]
     );
     res.status(201).json({ message: "User created" });
   } catch (error) {
@@ -282,6 +283,20 @@ router.put("/users/profile", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Update user error:", error);
     return res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+router.delete("/users/:id", async (req, res) => {
+  try {
+    const [result] = await pool.query("DELETE FROM users WHERE id = ?", [
+      req.params.id,
+    ]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ message: "User deleted" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

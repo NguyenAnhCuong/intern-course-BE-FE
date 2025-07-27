@@ -1,22 +1,44 @@
 require("dotenv").config();
 const express = require("express");
+const http = require("http"); // 💡 thêm dòng này
 const mqtt = require("mqtt");
 const nodemailer = require("nodemailer");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
+const { Server } = require("socket.io"); // 💡 thêm dòng này
 
 const app = express();
-
 const port = 8000;
-const deviceRouter = require("./routes/api.js");
+
+const server = http.createServer(app); // 💡 tạo http server từ express
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+// ⚙️ Middleware
 app.use(cors());
 app.use(express.json());
-app.use("/api", deviceRouter); // gắn router
 
-// ✅ Kết nối CSDL
+// 🔌 Socket.IO
+io.on("connection", (socket) => {
+  console.log("🔌 Client connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("❌ Client disconnected:", socket.id);
+  });
+});
+
+// 🛣️ API routes
+const deviceRouter = require("./routes/api.js");
+app.use("/api", deviceRouter);
+
+// 💾 Kết nối CSDL
 const pool = require("./config/db.js");
 
-// ✅ Kết nối MQTT Broker
+// 📡 Kết nối MQTT Broker
 const mqttClient = mqtt.connect(
   process.env.MQTT_BROKER || "mqtt://broker.hivemq.com",
   {
@@ -36,7 +58,7 @@ mqttClient.on("error", (err) => {
   console.error("❌ MQTT error:", err.message);
 });
 
-// ✅ Hàm gửi email cảnh báo
+// 📧 Gửi email cảnh báo
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -48,7 +70,7 @@ const transporter = nodemailer.createTransport({
 async function sendEmailAlert(data) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: process.env.EMAIL_RECEIVER, //  email
+    to: process.env.EMAIL_RECEIVER,
     subject: "🔥 Cảnh báo từ thiết bị IoT",
     text: `Thiết bị ${data.deviceId} báo nhiệt độ/gas cao: ${
       data.temperature || data.gas
@@ -63,20 +85,14 @@ async function sendEmailAlert(data) {
   }
 }
 
-// sendEmailAlert({
-//   deviceId: "device_temp_01",
-//   temperature: 40,
-//   timestamp: new Date().toISOString(),
-// });
-
-// ✅ Hàm chọn bảng theo loại thiết bị
+// 🧠 Lấy tên bảng theo deviceId
 function getTableNameFromDeviceId(deviceId) {
   if (deviceId.startsWith("device_temp")) return "iot_temp_data";
   if (deviceId.startsWith("device_gas")) return "iot_gas_data";
   return "iot_data";
 }
 
-// ✅ Xử lý dữ liệu từ MQTT
+// 📥 Xử lý dữ liệu từ MQTT
 mqttClient.on("message", async (topic, message) => {
   try {
     const data = JSON.parse(message.toString());
@@ -101,7 +117,10 @@ mqttClient.on("message", async (topic, message) => {
 
     console.log(`💾 Dữ liệu lưu vào bảng ${tableName}`);
 
-    // Gửi email nếu vượt ngưỡng
+    // 💬 Phát dữ liệu realtime qua socket.io
+    io.emit("iot_data", data); // tất cả client đang kết nối đều nhận được
+
+    // 🔔 Gửi email nếu vượt ngưỡng
     if (
       (data.temperature && data.temperature > 35) ||
       (data.gas && data.gas > 80)
@@ -118,6 +137,7 @@ app.get("/status", (req, res) => {
   res.json({ status: "✅ Server running and MQTT connected" });
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server listening at http://localhost:${port}`);
+// 🚀 Start server
+server.listen(port, () => {
+  console.log(`🚀 Server + Socket.IO listening at http://localhost:${port}`);
 });

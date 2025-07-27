@@ -19,6 +19,7 @@
     "mqtt": "^5.13.1",
     "mysql2": "^3.14.1",
     "nodemailer": "^7.0.3",
+    "socket.io": "4.8.1",
     "uuid": "^11.1.0"
   },
   "description": ""
